@@ -5,7 +5,7 @@ use warnings;
 use strict;
 use 5.008000;
 
-our $VERSION = '0.011';
+our $VERSION = '0.012';
 
 use Term::ReadKey  qw( GetTerminalSize ReadKey ReadMode );
 

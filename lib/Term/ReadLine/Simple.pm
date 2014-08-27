@@ -4,7 +4,7 @@ use warnings;
 use strict;
 use 5.008000;
 
-our $VERSION = '0.011';
+our $VERSION = '0.012';
 
 use Carp   qw( croak carp );
 use Encode qw( encode decode );
@@ -331,11 +331,11 @@ __END__
 
 =head1 NAME
 
-Term::ReadLine::Simple - This module is now called Term::ReadLine::Simple.
+Term::ReadLine::Simple - Read a line from STDIN.
 
 =head1 VERSION
 
-Version 0.011
+Version 0.012
 
 =cut
 
@@ -477,11 +477,13 @@ See L</config> for the default and allowed values.
 
 =head2 Perl version
 
-Requires Perl version 5.08.0 or greater.
+Requires Perl version 5.8.0 or greater.
 
 =head2 Terminal
 
-It is required a terminal which uses a monospaced font and understands ANSI escape sequences.
+It is required a terminal which uses a monospaced font.
+
+Unless the OS is MSWin32 the terminal has to understands ANSI escape sequences.
 
 =head2 Encoding layer
 
