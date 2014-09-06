@@ -17,11 +17,17 @@ my $command = $^X;
 my $script = catfile $RealBin, 'readline_valid_args.pl';
 my @parameters  = ( $script );
 
-my $exp = Expect->new();
-$exp->raw_pty( 1 );
-$exp->log_stdout( 0 );
-$exp->slave->clone_winsize_from( \*STDIN );
-$exp->spawn( $command, @parameters ) or die "Spawn '$command @parameters' NOT ok $!";
+my $exp;
+
+eval {
+    $exp = Expect->new();
+    $exp->raw_pty( 1 );
+    $exp->log_stdout( 0 );
+    $exp->slave->clone_winsize_from( \*STDIN );
+    $exp->spawn( $command, @parameters ) or die "Spawn '$command @parameters' NOT ok $!";
+    1;
+}
+or plan skip_all => $@;
 
 my $a_ref = Data_Test_Arguments::valid_args();
 
