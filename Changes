@@ -1,6 +1,9 @@
 Revision history for Term::ReadLine::Simple
 
 
+0.014   2014-11-20
+        - Make tests which use "Expect" optional.
+
 0.013   2014-09-06
         - Modified tests: skip if a "Given filehandle is not a tty in clone_winsize_from".
 

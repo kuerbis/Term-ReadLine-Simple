@@ -4,10 +4,10 @@ use warnings;
 use strict;
 use 5.008000;
 
-our $VERSION = '0.013';
+our $VERSION = '0.014';
 
 use Carp   qw( croak carp );
-use Encode qw( encode decode );
+use Encode qw( encode );
 
 use Encode::Locale    qw();
 use Unicode::GCString qw();
@@ -335,7 +335,7 @@ Term::ReadLine::Simple - Read a line from STDIN.
 
 =head1 VERSION
 
-Version 0.013
+Version 0.014
 
 =cut
 
