@@ -1,6 +1,10 @@
 Revision history for Term::ReadLine::Simple
 
 
+0.015   2014-12-08
+        - Perl minimum version: "5.8.3".
+        - Update build requirements.
+
 0.014   2014-11-20
         - Make tests which use "Expect" optional.
 

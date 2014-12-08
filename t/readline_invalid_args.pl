@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
 use strict;
 use warnings;
-use 5.008000;
+use 5.008003;
 
 use Term::ReadLine::Simple;
 

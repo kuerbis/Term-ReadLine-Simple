@@ -2,9 +2,9 @@ package Term::ReadLine::Simple;
 
 use warnings;
 use strict;
-use 5.008000;
+use 5.008003;
 
-our $VERSION = '0.014';
+our $VERSION = '0.015';
 
 use Carp   qw( croak carp );
 use Encode qw( encode );
@@ -335,7 +335,7 @@ Term::ReadLine::Simple - Read a line from STDIN.
 
 =head1 VERSION
 
-Version 0.014
+Version 0.015
 
 =cut
 
@@ -477,7 +477,7 @@ See L</config> for the default and allowed values.
 
 =head2 Perl version
 
-Requires Perl version 5.8.0 or greater.
+Requires Perl version 5.8.3 or greater.
 
 =head2 Terminal
 

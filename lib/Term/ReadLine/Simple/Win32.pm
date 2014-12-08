@@ -3,9 +3,9 @@ Term::ReadLine::Simple::Win32;
 
 use warnings;
 use strict;
-use 5.008000;
+use 5.008003;
 
-our $VERSION = '0.014';
+our $VERSION = '0.015';
 
 use Encode qw( decode );
 
