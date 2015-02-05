@@ -4,7 +4,7 @@ use warnings;
 use strict;
 use 5.008003;
 
-our $VERSION = '0.015';
+our $VERSION = '0.016';
 
 use Carp   qw( croak carp );
 use Encode qw( encode );
@@ -335,7 +335,7 @@ Term::ReadLine::Simple - Read a line from STDIN.
 
 =head1 VERSION
 
-Version 0.015
+Version 0.016
 
 =cut
 
@@ -352,6 +352,8 @@ C<readline> reads a line from STDIN. As soon as C<Return> is pressed C<readline>
 newline character - so no C<chomp> is required.
 
 This module is intended to cope with Unicode (multibyte character/grapheme cluster).
+
+It is required a terminal which uses a monospaced font.
 
 =head2 Keys
 
@@ -507,7 +509,7 @@ L<stackoverflow|http://stackoverflow.com> for the help.
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2014 Matthäus Kiem.
+Copyright 2014-2015 Matthäus Kiem.
 
 This library is free software; you can redistribute it and/or modify it under the same terms as Perl 5.10.0. For
 details, see the full text of the licenses in the file LICENSE.

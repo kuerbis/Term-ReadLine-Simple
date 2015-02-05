@@ -5,7 +5,7 @@ use warnings;
 use strict;
 use 5.008003;
 
-our $VERSION = '0.015';
+our $VERSION = '0.016';
 
 use Exporter qw( import );
 
@@ -15,6 +15,7 @@ our @EXPORT_OK = qw(
         KEY_ENTER KEY_ESC KEY_BSPACE
         VK_CODE_END VK_CODE_HOME VK_CODE_LEFT VK_CODE_UP VK_CODE_RIGHT VK_CODE_DELETE
         VK_END VK_HOME VK_LEFT VK_UP VK_RIGHT VK_DELETE
+        CLEAR_TO_END_OF_SCREEN SAVE_CURSOR_POSITION RESTORE_CURSOR_POSITION
 );
 
 our %EXPORT_TAGS = (
@@ -28,6 +29,7 @@ our %EXPORT_TAGS = (
         NEXT_get_key
         KEY_BTAB KEY_ESC
         VK_END VK_HOME VK_LEFT VK_UP VK_RIGHT VK_DELETE
+        CLEAR_TO_END_OF_SCREEN SAVE_CURSOR_POSITION RESTORE_CURSOR_POSITION
     ) ],
     win32  => [ qw(
         NEXT_get_key
@@ -37,55 +39,45 @@ our %EXPORT_TAGS = (
 );
 
 
+use constant {
+    CLEAR_TO_END_OF_SCREEN => "\e[0J",
 
-#sub UP                     () { "\e[A" }
-#sub RIGHT                  () { "\e[C" }
-#sub LEFT                   () { "\e[D" }
-#sub LF                     () { "\n" } #
-#sub CR                     () { "\r" } #
-
-#sub BEEP                   () { "\a" }
-#sub CLEAR_SCREEN           () { "\e[2J\e[1;1H" }
-#sub CLEAR_TO_END_OF_SCREEN () { "\e[0J" }
-
-#sub SAVE_CURSOR_POSITION    () { "\e[s" }
-#sub RESTORE_CURSOR_POSITION () { "\e[u" }
-
-#sub GET_CURSOR_POSITION     () { "\e[6n" }
+    SAVE_CURSOR_POSITION    => "\e[s",
+    RESTORE_CURSOR_POSITION => "\e[u",
 
 
-sub NEXT_get_key  () { -1 }
+    NEXT_get_key => -1,
+
+    CONTROL_A  => 0x01,
+    CONTROL_B  => 0x02,
+    CONTROL_D  => 0x04,
+    CONTROL_E  => 0x05,
+    CONTROL_F  => 0x06,
+    CONTROL_H  => 0x08,
+    KEY_BTAB   => 0x08,
+    KEY_TAB    => 0x09,
+    CONTROL_K  => 0x0b,
+    KEY_ENTER  => 0x0d,
+    CONTROL_U  => 0x15,
+    KEY_ESC    => 0x1b,
+    KEY_BSPACE => 0x7f,
+
+    VK_END    => 335,
+    VK_HOME   => 336,
+    VK_LEFT   => 337,
+    VK_UP     => 338,
+    VK_RIGHT  => 339,
+    VK_DELETE => 346,
+
+    VK_CODE_END    => 35,
+    VK_CODE_HOME   => 36,
+    VK_CODE_LEFT   => 37,
+    VK_CODE_UP     => 38,
+    VK_CODE_RIGHT  => 39,
+    VK_CODE_DELETE => 46,
+};
 
 
-sub CONTROL_A  () { 0x01 }
-sub CONTROL_B  () { 0x02 }
-sub CONTROL_D  () { 0x04 }
-sub CONTROL_E  () { 0x05 }
-sub CONTROL_F  () { 0x06 }
-sub CONTROL_H  () { 0x08 }
-sub KEY_BTAB   () { 0x08 }
-sub KEY_TAB    () { 0x09 }
-sub CONTROL_K  () { 0x0b }
-sub KEY_ENTER  () { 0x0d }
-sub CONTROL_U  () { 0x15 }
-sub KEY_ESC    () { 0x1b }
-sub KEY_BSPACE () { 0x7f }
-
-
-sub VK_END    () { 335 }
-sub VK_HOME   () { 336 }
-sub VK_LEFT   () { 337 }
-sub VK_UP     () { 338 }
-sub VK_RIGHT  () { 339 }
-sub VK_DELETE () { 346 }
-
-
-sub VK_CODE_END    () { 35 }
-sub VK_CODE_HOME   () { 36 }
-sub VK_CODE_LEFT   () { 37 }
-sub VK_CODE_UP     () { 38 }
-sub VK_CODE_RIGHT  () { 39 }
-sub VK_CODE_DELETE () { 46 }
 
 1;
 
