@@ -1,6 +1,11 @@
 Revision history for Term::ReadLine::Simple
 
 
+0.200   2015-03-14
+        - Refactored 'readline' - keep output in one row.
+        - New method 'fill_form'.
+        - Update documentation.
+
 0.016   2015-02-05
         - Use constant.
         - Update year copyright.

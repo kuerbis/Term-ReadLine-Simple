@@ -5,13 +5,14 @@ use warnings;
 use strict;
 use 5.008003;
 
-our $VERSION = '0.016';
+our $VERSION = '0.200';
 
 use Encode qw( decode );
 
 use Encode::Locale qw();
 use Win32::Console qw( STD_INPUT_HANDLE ENABLE_PROCESSED_INPUT STD_OUTPUT_HANDLE
-                       RIGHT_ALT_PRESSED LEFT_ALT_PRESSED RIGHT_CTRL_PRESSED LEFT_CTRL_PRESSED SHIFT_PRESSED );
+                       RIGHT_ALT_PRESSED LEFT_ALT_PRESSED RIGHT_CTRL_PRESSED LEFT_CTRL_PRESSED SHIFT_PRESSED
+                       FOREGROUND_INTENSITY BACKGROUND_INTENSITY );
 
 use Term::ReadLine::Simple::Constants qw( :win32 );
 
@@ -43,7 +44,9 @@ sub __reset_mode {
         $self->{input}->Flush;
         # workaround Bug #33513:
         delete $self->{input}{handle};
-        delete $self->{output}{handle};
+    }
+    if ( defined $self->{output} ) {
+        delete $self->{output}{handle}; # ?
     }
 }
 
@@ -71,12 +74,15 @@ sub __get_key {
             if ( $ctrl_key_state & SHIFTED_MASK ) {
                 return NEXT_get_key;
             }
-            elsif ( $v_key_code == VK_CODE_END )    { return VK_END }
-            elsif ( $v_key_code == VK_CODE_HOME )   { return VK_HOME }
-            elsif ( $v_key_code == VK_CODE_LEFT )   { return VK_LEFT }
-            elsif ( $v_key_code == VK_CODE_UP )     { return VK_UP }
-            elsif ( $v_key_code == VK_CODE_RIGHT )  { return VK_RIGHT }
-            elsif ( $v_key_code == VK_CODE_DELETE ) { return VK_DELETE }
+            elsif ( $v_key_code == VK_CODE_END )       { return VK_END }
+            elsif ( $v_key_code == VK_CODE_HOME )      { return VK_HOME }
+            elsif ( $v_key_code == VK_CODE_LEFT )      { return VK_LEFT }
+            elsif ( $v_key_code == VK_CODE_UP )        { return VK_UP }
+            elsif ( $v_key_code == VK_CODE_DOWN )      { return VK_DOWN }
+            elsif ( $v_key_code == VK_CODE_RIGHT )     { return VK_RIGHT }
+            elsif ( $v_key_code == VK_CODE_PAGE_UP )   { return VK_PAGE_UP }
+            elsif ( $v_key_code == VK_CODE_PAGE_DOWN ) { return VK_PAGE_DOWN }
+            elsif ( $v_key_code == VK_CODE_DELETE )    { return VK_DELETE }
             else {
                 return NEXT_get_key;
             }
@@ -88,56 +94,101 @@ sub __get_key {
 }
 
 
-sub __term_buff_width {
+sub __term_buff_size {
     my ( $self ) = @_;
-    my ( $term_width ) = $self->{output}->MaxWindow();
-    return $term_width;
+    my ( $term_width, $term_height ) = $self->{output}->MaxWindow();
+    return $term_width - 1, $term_height - 1;
 }
-
 
 sub __get_cursor_position {
     my ( $self ) = @_;
     my ( $col, $row ) = $self->{output}->Cursor();
-    return $col + 1, $row + 1;
+    return $col, $row;
+    #return $col + 1, $row + 1;
 }
-
 
 sub __set_cursor_position {
     my ( $self, $col, $row ) = @_;
-    $self->{output}->Cursor( $col - 1, $row - 1 );
+    $self->{output}->Cursor( $col, $row );
+    #$self->{output}->Cursor( $col - 1, $row - 1 );
 }
-
 
 sub __up {
     my ( $self, $rows_up ) = @_;
-    return if ! $rows_up; #
+    return if ! $rows_up;
     my ( $col, $row ) = $self->__get_cursor_position;
     my $new_row = $row - $rows_up;
     $new_row = 1 if $new_row < 1;
     $self->__set_cursor_position( $col, $new_row  );
 }
 
+sub __down {
+    my ( $self, $rows_down ) = @_;
+    return if ! $rows_down;
+    my ( $col, $row ) = $self->__get_cursor_position;
+    my $new_row = $row + $rows_down; #
+    $self->__set_cursor_position( $col, $new_row  );
+}
 
-sub __clear_output{
-    my ( $self, $chars ) = @_;
+sub __left {
+    my ( $self, $cols_left ) = @_;
+    return if ! $cols_left; #
+    my ( $col, $row ) = $self->__get_cursor_position;
+    my $new_col = $col - $cols_left; #
+    $self->__set_cursor_position( $new_col, $row  );
+}
+
+sub __right {
+    my ( $self, $cols_right ) = @_;
+    return if ! $cols_right; #
+    my ( $col, $row ) = $self->__get_cursor_position;
+    my $new_col = $col + $cols_right; #
+    $self->__set_cursor_position( $new_col, $row  );
+}
+
+sub __clear_screen {
+    my ( $self ) = @_;
+    $self->{output}->Cls( $self->{def_attr} );
+}
+
+sub __clear_lines_to_end_of_screen {
+    my ( $self ) = @_;
+    my ( $width, $height ) = $self->{output}->Size(); #
     my ( $col, $row ) = $self->__get_cursor_position();
+    $self->__set_cursor_position( 0, $row  );
     $self->{output}->FillAttr(
             $self->{fill_attr},
-            $chars,
-            $col - 2, $row - 1 );
+            $width * $height, #
+            0, $row );
 }
 
-
-sub __save_cursor_position {
+sub __clear_line {
     my ( $self ) = @_;
-    $self->{saved_cursor_position} = [ $self->{output}->Cursor() ];
+    my ( $width, $height ) = $self->{output}->Size(); #
+    my ( $col, $row ) = $self->__get_cursor_position();
+    $self->__set_cursor_position( 0, $row  );
+    $self->{output}->FillAttr(
+            $self->{fill_attr},
+            $width,
+            0, $row );
 }
 
-sub __restore_cursor_position {
+sub __reverse {
     my ( $self ) = @_;
-    $self->{output}->Cursor( @{$self->{saved_cursor_position}} );
+    $self->{output}->Attr( $self->{inverse} );
 }
 
+sub __reset {
+    my ( $self ) = @_;
+    $self->{output}->Attr( $self->{def_attr} );
+}
+
+sub __mark_current {
+    my ( $self ) = @_;
+    $self->{output}->Attr( $self->{def_attr} | FOREGROUND_INTENSITY | BACKGROUND_INTENSITY  );
+}
+
+sub __beep {}
 
 
 

@@ -5,7 +5,7 @@ use warnings;
 use strict;
 use 5.008003;
 
-our $VERSION = '0.016';
+our $VERSION = '0.200';
 
 use Term::ReadKey  qw( GetTerminalSize ReadKey ReadMode );
 
@@ -29,10 +29,10 @@ sub __reset_mode {
 }
 
 
-sub __term_buff_width {
+sub __term_buff_size {
     #my ( $self ) = @_;
-    my ( $term_width ) = GetTerminalSize();
-    return $term_width;
+    my ( $term_width, $term_height ) = GetTerminalSize();
+    return $term_width, $term_height;
 }
 
 
@@ -47,7 +47,9 @@ sub __get_key {
         }
         elsif ( $c2 eq 'O' ) {
             my $c3 = ReadKey( 0 );
-               if ( $c3 eq 'C' ) { return VK_RIGHT; }
+               if ( $c3 eq 'A' ) { return VK_UP; }
+            elsif ( $c3 eq 'B' ) { return VK_DOWN; }
+            elsif ( $c3 eq 'C' ) { return VK_RIGHT; }
             elsif ( $c3 eq 'D' ) { return VK_LEFT; }
             elsif ( $c3 eq 'F' ) { return VK_END; }
             elsif ( $c3 eq 'H' ) { return VK_HOME; }
@@ -58,7 +60,9 @@ sub __get_key {
         }
         elsif ( $c2 eq '[' ) {
             my $c3 = ReadKey( 0 );
-               if ( $c3 eq 'C' ) { return VK_RIGHT; }
+               if ( $c3 eq 'A' ) { return VK_UP; }
+            elsif ( $c3 eq 'B' ) { return VK_DOWN; }
+            elsif ( $c3 eq 'C' ) { return VK_RIGHT; }
             elsif ( $c3 eq 'D' ) { return VK_LEFT; }
             elsif ( $c3 eq 'F' ) { return VK_END; }
             elsif ( $c3 eq 'H' ) { return VK_HOME; }
@@ -66,7 +70,9 @@ sub __get_key {
             elsif ( $c3 =~ /^[0-9]$/ ) {
                 my $c4 = ReadKey( 0 );
                 if ( $c4 eq '~' ) {
-                    if ( $c3 eq '3' ) { return VK_DELETE; }
+                       if ( $c3 eq '3' ) { return VK_DELETE; }
+                    elsif ( $c3 eq '5' ) { return VK_PAGE_UP; }
+                    elsif ( $c3 eq '6' ) { return VK_PAGE_DOWN; }
                     else {
                         return NEXT_get_key;
                     }
@@ -89,20 +95,43 @@ sub __get_key {
 };
 
 
-sub __up    { print "\e[${_[1]}A"; }
+sub __up    {
+    return if ! $_[1];
+    print "\e[${_[1]}A";
+}
 
-sub __left  { print "\e[${_[1]}D"; }
+sub __down  {
+    return if ! $_[1];
+    print "\e[${_[1]}B";
+}
 
-sub __right { print "\e[${_[1]}C"; }
+sub __left  {
+    return if ! $_[1];
+    print "\e[${_[1]}D"; }
 
+sub __right {
+    return if ! $_[1];
+    print "\e[${_[1]}C";
+}
 
-sub __clear_output { print CLEAR_TO_END_OF_SCREEN; }
+sub __reverse { print "\e[7m"; }
 
-sub __save_cursor_position { print SAVE_CURSOR_POSITION; }
+sub __reset   { print "\e[0m"; }
 
-sub __restore_cursor_position { print RESTORE_CURSOR_POSITION; }
+sub __mark_current { print "\e[4m"; } #print "\e[1m\e[4m";
 
+sub __clear_screen { print "\e[H\e[J"; }
 
+sub __clear_lines_to_end_of_screen { print "\r\e[0J"; }
+
+sub __clear_line { print "\r\e[K"; }
+
+#sub __save_cursor_position { print "\e[s"; }
+#sub __restore_cursor_position { print "\e[u"; }
+
+sub __beep {
+#    print "\a";
+}
 
 1;
 
