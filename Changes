@@ -1,6 +1,9 @@
 Revision history for Term::ReadLine::Simple
 
 
+0.203   2015-03-15
+        - Modified test.
+
 0.202   2015-03-15
         - Refactored "option" code.
 
