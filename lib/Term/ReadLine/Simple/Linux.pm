@@ -5,7 +5,7 @@ use warnings;
 use strict;
 use 5.008003;
 
-our $VERSION = '0.200';
+our $VERSION = '0.201';
 
 use Term::ReadKey  qw( GetTerminalSize ReadKey ReadMode );
 
@@ -118,16 +118,13 @@ sub __reverse { print "\e[7m"; }
 
 sub __reset   { print "\e[0m"; }
 
-sub __mark_current { print "\e[4m"; } #print "\e[1m\e[4m";
+sub __mark_current { print "\e[4m"; } # "\e[1m\e[4m";
 
 sub __clear_screen { print "\e[H\e[J"; }
 
 sub __clear_lines_to_end_of_screen { print "\r\e[0J"; }
 
 sub __clear_line { print "\r\e[K"; }
-
-#sub __save_cursor_position { print "\e[s"; }
-#sub __restore_cursor_position { print "\e[u"; }
 
 sub __beep {
 #    print "\a";

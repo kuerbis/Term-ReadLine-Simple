@@ -1,6 +1,11 @@
 Revision history for Term::ReadLine::Simple
 
 
+0.201   2015-03-15
+        - "fill_form": new option "auto_up".
+        - Code refactoring.
+        - Update documentation.
+
 0.200   2015-03-14
         - Refactored 'readline' - keep output in one row.
         - New method 'fill_form'.

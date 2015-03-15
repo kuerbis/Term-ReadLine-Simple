@@ -4,7 +4,7 @@ use warnings;
 use strict;
 use 5.008003;
 
-our $VERSION = '0.200';
+our $VERSION = '0.201';
 
 use Carp   qw( croak carp );
 use Encode qw( encode );
@@ -57,17 +57,17 @@ sub DESTROY {
 
 sub __set_defaults {
     my ( $self ) = @_;
-    #$self->{compat}         : undef
-    #$self->{reinit_encoding}: undef
-    #$self->{no_echo}        : false
+    #$self->{compat}         : undef ok
+    #$self->{reinit_encoding}: undef ok
+    #$self->{no_echo}        : false ok
     $self->{default} = '' if ! defined $self->{default};
 
-    #$self->{prompt}   : undef
-    #$self->{mark_curr}: false
-    #$self->{back}     : undef
+    #$self->{prompt}   : undef ok
+    #$self->{mark_curr}: false ok
+    #$self->{auto_up}  : false ok
+    #$self->{back}     : undef 0k
     $self->{back}    = ''   if ! defined $self->{back};
     $self->{confirm} = '<<' if ! defined $self->{confirm};
-    $self->{auto_up} = 1    if ! defined $self->{auto_up};
 }
 
 
@@ -447,7 +447,7 @@ sub __write_first_screen {
     }
     $self->{length_prompt} = $self->{len_longest_key} + length $self->{sep};
     $self->{avail_width_value} = $self->{avail_width} - $self->{length_prompt};
-    $self->{curr_row} = $curr_row;
+    $self->{curr_row} = $opt->{auto_up} ? $curr_row : @{$self->{pre_list}};
     $self->{begin_row} = 0;
     $self->{end_row}  = ( $self->{avail_height} - 1 );
     if ( $self->{end_row} > $#{$self->{list}} ) {
@@ -487,10 +487,10 @@ sub fill_form {
         $opt = {};
     }
     $self->{list} = $list;
-    $opt->{prompt}  = $self->{prompt}  if ! defined $opt->{prompt};   #
-    $opt->{back}    = $self->{back}    if ! defined $opt->{back};     #
-    $opt->{confirm} = $self->{confirm} if ! defined $opt->{confirm};  #
-    $opt->{auto_up} = $self->{auto_up} if ! defined $opt->{auto_up};  #
+    $opt->{prompt}  = $self->{prompt}  if ! defined $opt->{prompt};
+    $opt->{back}    = $self->{back}    if ! defined $opt->{back};
+    $opt->{confirm} = $self->{confirm} if ! defined $opt->{confirm};
+    $opt->{auto_up} = $self->{auto_up} if ! defined $opt->{auto_up};
     $opt->{main_prompt} = $opt->{prompt};
     $self->{sep} = ': ';
     $self->{pre_list} = [ [ $opt->{confirm} ] ];
@@ -818,7 +818,7 @@ Term::ReadLine::Simple - Read lines from STDIN.
 
 =head1 VERSION
 
-Version 0.200
+Version 0.201
 
 =cut
 
@@ -885,7 +885,7 @@ The C<new> method returns a C<Term::ReadLine::Simple> object.
 
 =head2 config
 
-The method C<config> sets the defaults for the current C<Term::ReadLine::Simple> object.
+The method C<config> overwrites the defaults for the current C<Term::ReadLine::Simple> object.
 
     $new->config( \%options );
 
@@ -937,7 +937,7 @@ argument is a hash-reference, the hash is used to set the different options. The
 
 default
 
-Set a initial value of input. As value it is expected a decoded string.
+Set a initial value of input.
 
 =item
 
@@ -960,8 +960,8 @@ C<fill_form> reads a list of lines from STDIN.
     $new_list = $new->fill_form( $list, { prompt => 'Required:' } );
 
 The first argument is a reference to an array of arrays. The arrays have 1 or 2 elements: the first element is the key
-and an optional second element is the value. The key is used as the prompt string for the readline, the value is used
-as the default value for the readline (initial value of input).
+and the optional second element is the value. The key is used as the prompt string for the "readline", the value is used
+as the default value for the "readline" (initial value of input).
 
 The optional second argument is a hash-reference. The keys/options are
 
@@ -977,6 +977,18 @@ default: undefined
 
 =item
 
+auto_up
+
+With I<auto_up> set to C<0> C<ENTER> goes to the next line if the cursor is on a "readline". After calling C<fill_form>
+the cursor is located on the first "readline" menu entry.
+
+Set to C<1> means C<ENTER> goes to the top menu entry if the cursor is on a "readline". After calling C<fill_form> the
+cursor is on the first menu entry.
+
+default: C<0>
+
+=item
+
 confirm
 
 Set the name of the "confirm" menu entry.
@@ -989,13 +1001,13 @@ back
 
 Set the name of the "back" menu entry.
 
-The "back" menu entry is not available, if I<back> is not defined or set to an empty string.
+The "back" menu entry is not available if I<back> is not defined or set to an empty string.
 
 default: undefined
 
 =back
 
-To close the form and and get the modified list (reference to an array or arrays) as the return value select the
+To close the form and get the modified list (reference to an array or arrays) as the return value select the
 "confirm" menu entry. If the "back" menu entry is chosen to close the form, C<fill_form> returns nothing.
 
 =head1 REQUIREMENTS
@@ -1008,7 +1020,7 @@ Requires Perl version 5.8.3 or greater.
 
 It is required a terminal which uses a monospaced font.
 
-Unless the OS is MSWin32 the terminal has to understands ANSI escape sequences.
+Unless the OS is MSWin32 the terminal has to understand ANSI escape sequences.
 
 =head2 Encoding layer
 

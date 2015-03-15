@@ -5,7 +5,7 @@ use warnings;
 use strict;
 use 5.008003;
 
-our $VERSION = '0.200';
+our $VERSION = '0.201';
 
 use Encode qw( decode );
 
@@ -97,53 +97,46 @@ sub __get_key {
 sub __term_buff_size {
     my ( $self ) = @_;
     my ( $term_width, $term_height ) = $self->{output}->MaxWindow();
-    return $term_width - 1, $term_height - 1;
+    return $term_width - 1, $term_height;
 }
 
 sub __get_cursor_position {
     my ( $self ) = @_;
     my ( $col, $row ) = $self->{output}->Cursor();
     return $col, $row;
-    #return $col + 1, $row + 1;
 }
 
 sub __set_cursor_position {
     my ( $self, $col, $row ) = @_;
     $self->{output}->Cursor( $col, $row );
-    #$self->{output}->Cursor( $col - 1, $row - 1 );
 }
 
 sub __up {
     my ( $self, $rows_up ) = @_;
     return if ! $rows_up;
     my ( $col, $row ) = $self->__get_cursor_position;
-    my $new_row = $row - $rows_up;
-    $new_row = 1 if $new_row < 1;
-    $self->__set_cursor_position( $col, $new_row  );
+    $self->__set_cursor_position( $col, $row - $rows_up  );
 }
 
 sub __down {
     my ( $self, $rows_down ) = @_;
     return if ! $rows_down;
     my ( $col, $row ) = $self->__get_cursor_position;
-    my $new_row = $row + $rows_down; #
-    $self->__set_cursor_position( $col, $new_row  );
+    $self->__set_cursor_position( $col, $row + $rows_down  );
 }
 
 sub __left {
     my ( $self, $cols_left ) = @_;
-    return if ! $cols_left; #
+    return if ! $cols_left;
     my ( $col, $row ) = $self->__get_cursor_position;
-    my $new_col = $col - $cols_left; #
-    $self->__set_cursor_position( $new_col, $row  );
+    $self->__set_cursor_position( $col - $cols_left, $row  );
 }
 
 sub __right {
     my ( $self, $cols_right ) = @_;
-    return if ! $cols_right; #
+    return if ! $cols_right;
     my ( $col, $row ) = $self->__get_cursor_position;
-    my $new_col = $col + $cols_right; #
-    $self->__set_cursor_position( $new_col, $row  );
+    $self->__set_cursor_position( $col + $cols_right, $row  );
 }
 
 sub __clear_screen {
