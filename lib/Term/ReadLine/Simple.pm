@@ -4,7 +4,7 @@ use warnings;
 use strict;
 use 5.008003;
 
-our $VERSION = '0.201';
+our $VERSION = '0.202';
 
 use Carp   qw( croak carp );
 use Encode qw( encode );
@@ -57,23 +57,26 @@ sub DESTROY {
 
 sub __set_defaults {
     my ( $self ) = @_;
-    #$self->{compat}         : undef ok
-    #$self->{reinit_encoding}: undef ok
-    #$self->{no_echo}        : false ok
-    $self->{default} = '' if ! defined $self->{default};
+    # compat         : undef ok
+    # reinit_encoding: undef ok
+    # no_echo        : false ok
+    $self->{opt}{default} = '' if ! defined $self->{default};
 
-    #$self->{prompt}   : undef ok
-    #$self->{mark_curr}: false ok
-    #$self->{auto_up}  : false ok
-    #$self->{back}     : undef 0k
-    $self->{back}    = ''   if ! defined $self->{back};
-    $self->{confirm} = '<<' if ! defined $self->{confirm};
+    # prompt   : undef ok
+    # mark_curr: false ok
+    # auto_up  : false ok
+    # back     : undef 0k
+    $self->{opt}{back}    = ''   if ! defined $self->{back};
+    $self->{opt}{confirm} = '<<' if ! defined $self->{confirm};
 }
 
 
 sub __validate_options {
     my ( $self, $opt, $valid ) = @_;
-    return if ! defined $opt;
+    if ( ! defined $opt ) {
+        $opt = {};
+        return;
+    }
     my $sub =  ( caller( 1 ) )[3];
     $sub =~ s/^.+::([^:]+)\z/$1/;
     for my $key ( keys %$opt ) {
@@ -132,7 +135,7 @@ sub config {
         };
         $self->__validate_options( $opt, $valid );
         for my $option ( keys %$opt ) {
-            $self->{$option} = $opt->{$option};
+            $self->{opt}{$option} = $opt->{$option};
         }
     }
 }
@@ -153,21 +156,14 @@ sub readline {
         elsif ( ref $opt ne 'HASH' ) {
             croak "readline: the (optional) second argument must be a string or a HASH reference";
         }
-        else {
-            my $valid = {
-                no_echo         => '[ 0 1 2 ]',
-                compat          => '[ 0 1 ]',
-                reinit_encoding => '',
-                default         => '',
-            };
-            $self->__validate_options( $opt, $valid );
-        }
     }
-    else {
-        $opt = {};
-    }
-    $opt->{default} = $self->{default} if ! defined $opt->{default};
-    $opt->{no_echo} = $self->{no_echo} if ! defined $opt->{no_echo};
+    my $valid = {
+        no_echo => '[ 0 1 2 ]',
+        default => '',
+    };
+    $self->__validate_options( $opt, $valid );
+    $opt->{default} = $self->{opt}{default} if ! defined $opt->{default};
+    $opt->{no_echo} = $self->{opt}{no_echo} if ! defined $opt->{no_echo};
     $self->{sep} = '';
     $self->{list}[0] = [ $prompt, $self->{default} ];
     $self->{curr_row} = 0;
@@ -468,29 +464,22 @@ sub fill_form {
     elsif ( ref $list ne 'ARRAY' ) {
         croak "'fill_form' requires an ARRAY reference as its argument.";
     }
-    if ( defined $opt ) {
-        if ( ref $opt ne 'HASH' ) {
-            croak "'fill_form': the (optional) second argument must be a HASH reference";
-        }
-        else {
-            my $valid = {
-                prompt    => '',
-                back      => '',
-                confirm   => '',
-                auto_up   => '[ 0 1 ]',
-                mark_curr => '[ 0 1 ]'
-            };
-            $self->__validate_options( $opt, $valid );
-        }
-    }
-    else {
-        $opt = {};
+    if ( defined $opt && ref $opt ne 'HASH' ) {
+        croak "'fill_form': the (optional) second argument must be a HASH reference";
     }
     $self->{list} = $list;
-    $opt->{prompt}  = $self->{prompt}  if ! defined $opt->{prompt};
-    $opt->{back}    = $self->{back}    if ! defined $opt->{back};
-    $opt->{confirm} = $self->{confirm} if ! defined $opt->{confirm};
-    $opt->{auto_up} = $self->{auto_up} if ! defined $opt->{auto_up};
+    my $valid = {
+        prompt    => '',
+        back      => '',
+        confirm   => '',
+        auto_up   => '[ 0 1 ]',
+        mark_curr => '[ 0 1 ]'
+    };
+    $self->__validate_options( $opt, $valid );
+    $opt->{prompt}  = $self->{opt}{prompt}  if ! defined $opt->{prompt};
+    $opt->{back}    = $self->{opt}{back}    if ! defined $opt->{back};
+    $opt->{confirm} = $self->{opt}{confirm} if ! defined $opt->{confirm};
+    $opt->{auto_up} = $self->{opt}{auto_up} if ! defined $opt->{auto_up};
     $opt->{main_prompt} = $opt->{prompt};
     $self->{sep} = ': ';
     $self->{pre_list} = [ [ $opt->{confirm} ] ];
@@ -818,7 +807,7 @@ Term::ReadLine::Simple - Read lines from STDIN.
 
 =head1 VERSION
 
-Version 0.201
+Version 0.202
 
 =cut
 

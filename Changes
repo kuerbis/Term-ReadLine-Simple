@@ -1,6 +1,9 @@
 Revision history for Term::ReadLine::Simple
 
 
+0.202   2015-03-15
+        - Refactored "option" code.
+
 0.201   2015-03-15
         - "fill_form": new option "auto_up".
         - Code refactoring.
