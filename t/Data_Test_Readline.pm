@@ -44,7 +44,7 @@ sub return_test_data {
         {
             used_keys => [ "-", 'ENTER' ],
             expected  => "<->",
-            arguments => [ 'Prompt: ' ],
+            arguments => [ 'Prompt: ', { default => '' } ], #
         },
         {
             used_keys => [ 'ENTER' ],
@@ -74,7 +74,7 @@ sub return_test_data {
         {
             used_keys => [ "0123456789", ( 'LEFT' ) x 5, 'CONTROL_U', 'ENTER' ],
             expected  => "<56789>",
-            arguments => [ ': ' ],
+            arguments => [ ': ', { default => '' } ], #
         },
         {
              used_keys => [ 'CONTROL_U', "a", 'ENTER'],
@@ -89,7 +89,7 @@ sub return_test_data {
         {
             used_keys => [ "The black cat climbed the green tree", 'HOME', ( 'RIGHT' ) x 4, ( 'DELETE' ) x 6, 'END', ( 'LEFT' ) x 5, ( 'BSPACE' ) x 6, 'ENTER' ],
             expected  => "<The cat climbed the tree>",
-            arguments => [ 'Prompt: ' ],
+            arguments => [ 'Prompt: ', { default => '' } ], #
         },
         {
             used_keys => [ qw( HOME RIGHT RIGHT_O DELETE CONTROL_D END LEFT LEFT_O BSPACE CONTROL_H CONTROL_A DELETE CONTROL_E BSPACE _ABC ENTER ) ],
