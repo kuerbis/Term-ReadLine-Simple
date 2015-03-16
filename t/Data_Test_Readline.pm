@@ -76,16 +76,16 @@ sub return_test_data {
         #    expected  => "<56789>",
         #    arguments => [ ': ' ],
         #},
-        {
-             used_keys => [ 'CONTROL_U', "a", 'ENTER'],
-             expected  => "<a>",
-             arguments => [ 'Prompt: ', { default => "many words " x 1000, no_echo => 0 } ],
-        },
-        {
-            used_keys => [ "abcde ", "XY " x 10, ( 'LEFT' ) x 36, ( 'RIGHT' ) x 8, 'CONTROL_K', 'ENTER' ],
-            expected  => "<DEFAULT abcde XY>",
-            arguments => [ "Prompt: ", { default => "DEFAULT " } ],
-        },
+        #{
+        #     used_keys => [ 'CONTROL_U', "a", 'ENTER'],
+        #     expected  => "<a>",
+        #     arguments => [ 'Prompt: ', { default => "many words " x 1000, no_echo => 0 } ],
+        #},
+        #{
+        #    used_keys => [ "abcde ", "XY " x 10, ( 'LEFT' ) x 36, ( 'RIGHT' ) x 8, 'CONTROL_K', 'ENTER' ],
+        #    expected  => "<DEFAULT abcde XY>",
+        #    arguments => [ "Prompt: ", { default => "DEFAULT " } ],
+        #},
         #{
         #    used_keys => [ "The black cat climbed the green tree", 'HOME', ( 'RIGHT' ) x 4, ( 'DELETE' ) x 6, 'END', ( 'LEFT' ) x 5, ( 'BSPACE' ) x 6, 'ENTER' ],
         #    expected  => "<The cat climbed the tree>",
