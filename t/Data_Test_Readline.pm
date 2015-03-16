@@ -44,7 +44,7 @@ sub return_test_data {
         {
             used_keys => [ "-", 'ENTER' ],
             expected  => "<->",
-            arguments => [ 'Prompt: ', { default => '' } ], #
+            arguments => [ 'Prompt: ' ],
         },
         {
             used_keys => [ 'ENTER' ],
@@ -71,11 +71,11 @@ sub return_test_data {
             expected  => "<The house>",
             arguments => [ 'Prompt: ', { default => "The ", no_echo => 1 } ],
         },
-        {
-            used_keys => [ "0123456789", ( 'LEFT' ) x 5, 'CONTROL_U', 'ENTER' ],
-            expected  => "<56789>",
-            arguments => [ ': ', { default => '' } ], #
-        },
+        #{
+        #    used_keys => [ "0123456789", ( 'LEFT' ) x 5, 'CONTROL_U', 'ENTER' ],
+        #    expected  => "<56789>",
+        #    arguments => [ ': ' ],
+        #},
         {
              used_keys => [ 'CONTROL_U', "a", 'ENTER'],
              expected  => "<a>",
@@ -86,11 +86,11 @@ sub return_test_data {
             expected  => "<DEFAULT abcde XY>",
             arguments => [ "Prompt: ", { default => "DEFAULT " } ],
         },
-        {
-            used_keys => [ "The black cat climbed the green tree", 'HOME', ( 'RIGHT' ) x 4, ( 'DELETE' ) x 6, 'END', ( 'LEFT' ) x 5, ( 'BSPACE' ) x 6, 'ENTER' ],
-            expected  => "<The cat climbed the tree>",
-            arguments => [ 'Prompt: ', { default => '' } ], #
-        },
+        #{
+        #    used_keys => [ "The black cat climbed the green tree", 'HOME', ( 'RIGHT' ) x 4, ( 'DELETE' ) x 6, 'END', ( 'LEFT' ) x 5, ( 'BSPACE' ) x 6, 'ENTER' ],
+        #    expected  => "<The cat climbed the tree>",
+        #    arguments => [ 'Prompt: ' ],
+        #},
         {
             used_keys => [ qw( HOME RIGHT RIGHT_O DELETE CONTROL_D END LEFT LEFT_O BSPACE CONTROL_H CONTROL_A DELETE CONTROL_E BSPACE _ABC ENTER ) ],
             expected  => "<hblack cat climbed the green e_ABC>",

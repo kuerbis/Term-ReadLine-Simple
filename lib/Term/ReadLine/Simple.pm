@@ -4,7 +4,7 @@ use warnings;
 use strict;
 use 5.008003;
 
-our $VERSION = '0.204';
+our $VERSION = '0.205';
 
 use Carp   qw( croak carp );
 use Encode qw( encode );
@@ -677,10 +677,11 @@ sub fill_form {
                     $self->{plugin}->__up( scalar @{$self->{pre_list}} );
                     $self->{plugin}->__clear_lines_to_end_of_screen();
                     $self->__reset_term();
-                    #if ( $self->{compat} || ! defined $self->{compat} && $ENV{READLINE_SIMPLE_COMPAT} ) {
-                    #    return encode( 'console_in', $str->as_string );
-                    #}
                     splice @{$self->{list}}, 0, @{$self->{pre_list}};
+                    #if ( $self->{compat} || ! defined $self->{compat} && $ENV{READLINE_SIMPLE_COMPAT} ) {
+                        #return [ map { [ $_->[0], encode( 'console_in', $_->[1] ) ] } @{$self->{list}} ];
+                    #}
+
                     return $self->{list};
                 }
                 if ( $opt->{auto_up} ) {
@@ -696,14 +697,22 @@ sub fill_form {
                     }
                 }
                 elsif ( $self->{curr_row} == $#{$self->{list}} ) {
-                    #$self->{plugin}->__up( $self->{end_row} - $self->{begin_row} );
-                    #$self->{plugin}->__up( 1 ) if $opt->{main_prompt};
-                    #$self->{plugin}->__clear_lines_to_end_of_screen();
-                    #( $str, $pos ) = $self->__write_first_screen( $opt, scalar @{$self->{pre_list}} );
-                    #( $str, $pos ) = $self->__gcstring_and_pos();
-                    $self->{beep} = 1;
+                    $self->{plugin}->__up( $self->{end_row} - $self->{begin_row} );
+                    $self->{plugin}->__up( 1 ) if $opt->{main_prompt};
+                    $self->{plugin}->__clear_lines_to_end_of_screen();
+                    ( $str, $pos ) = $self->__write_first_screen( $opt, scalar @{$self->{pre_list}} );
+                    ( $str, $pos ) = $self->__gcstring_and_pos();
+                    #$self->{enter_col} = $pos;
+                    #$self->{enter_row} = $self->{curr_row};
                 }
                 else {
+                    #if ( defined $self->{enter_row} && $self->{enter_row} == $self->{curr_row}
+                    #  && defined $self->{enter_col} && $self->{enter_col} == $pos ) {
+                    #    $self->{beep} = 1;
+                    #    next;
+                    #}
+                    #delete $self->{enter_row};
+                    #delete $self->{enter_col};
                     $self->{curr_row}++;
                     ( $str, $pos ) = $self->__gcstring_and_pos();
                     if ( $self->{curr_row} <= $self->{end_row} ) {
@@ -807,7 +816,7 @@ Term::ReadLine::Simple - Read lines from STDIN.
 
 =head1 VERSION
 
-Version 0.204
+Version 0.205
 
 =cut
 

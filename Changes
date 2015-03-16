@@ -1,6 +1,10 @@
 Revision history for Term::ReadLine::Simple
 
 
+0.205   2015-03-16
+        - Modified test.
+        - Changed "ENTER" key behavior.
+
 0.204   2015-03-16
         - Modified test.
 
