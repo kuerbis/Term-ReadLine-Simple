@@ -4,7 +4,7 @@ use warnings;
 use strict;
 use 5.008003;
 
-our $VERSION = '0.207';
+our $VERSION = '0.207_01';
 
 use Carp   qw( croak carp );
 use Encode qw( encode );
@@ -811,7 +811,6 @@ sub __unicode_trim {
 # my $default = 'ü';                    # "\x{fc}"
 # character read with readline: 'ä'     # "\x{e4}"
 
-
 #-----------------------------------------------------------
 
 # my $tr = Term::ReadLine->new( 'Perl' );
@@ -878,7 +877,7 @@ Term::ReadLine::Simple - Read lines from STDIN.
 
 =head1 VERSION
 
-Version 0.207
+Version 0.207_01
 
 =cut
 
