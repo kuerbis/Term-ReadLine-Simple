@@ -4,7 +4,7 @@ use warnings;
 use strict;
 use 5.008003;
 
-our $VERSION = '0.206';
+our $VERSION = '0.207';
 
 use Carp   qw( croak carp );
 use Encode qw( encode );
@@ -60,14 +60,14 @@ sub __set_defaults {
     # compat         : undef ok
     # reinit_encoding: undef ok
     # no_echo        : false ok
-    $self->{opt}{default} = '' if ! defined $self->{default};
+    $self->{default} = '' if ! defined $self->{default};
 
     # prompt   : undef ok
     # mark_curr: false ok
     # auto_up  : false ok
     # back     : undef 0k
-    $self->{opt}{back}    = ''   if ! defined $self->{back};
-    $self->{opt}{confirm} = '<<' if ! defined $self->{confirm};
+    $self->{back}    = ''   if ! defined $self->{back};
+    $self->{confirm} = '<<' if ! defined $self->{confirm};
 }
 
 
@@ -135,7 +135,7 @@ sub config {
         };
         $self->__validate_options( $opt, $valid );
         for my $option ( keys %$opt ) {
-            $self->{opt}{$option} = $opt->{$option};
+            $self->{$option} = $opt->{$option};
         }
     }
 }
@@ -162,8 +162,8 @@ sub readline {
         default => '',
     };
     $self->__validate_options( $opt, $valid );
-    $opt->{default} = $self->{opt}{default} if ! defined $opt->{default};
-    $opt->{no_echo} = $self->{opt}{no_echo} if ! defined $opt->{no_echo};
+    $opt->{default} = $self->{default} if ! defined $opt->{default};
+    $opt->{no_echo} = $self->{no_echo} if ! defined $opt->{no_echo};
     $self->{sep} = '';
     $self->{list}[0] = [ $prompt, $self->{default} ];
     $self->{curr_row} = 0;
@@ -476,10 +476,10 @@ sub fill_form {
         mark_curr => '[ 0 1 ]'
     };
     $self->__validate_options( $opt, $valid );
-    $opt->{prompt}  = $self->{opt}{prompt}  if ! defined $opt->{prompt};
-    $opt->{back}    = $self->{opt}{back}    if ! defined $opt->{back};
-    $opt->{confirm} = $self->{opt}{confirm} if ! defined $opt->{confirm};
-    $opt->{auto_up} = $self->{opt}{auto_up} if ! defined $opt->{auto_up};
+    $opt->{prompt}  = $self->{prompt}  if ! defined $opt->{prompt};
+    $opt->{back}    = $self->{back}    if ! defined $opt->{back};
+    $opt->{confirm} = $self->{confirm} if ! defined $opt->{confirm};
+    $opt->{auto_up} = $self->{auto_up} if ! defined $opt->{auto_up};
     $opt->{main_prompt} = $opt->{prompt};
     $self->{sep} = ': ';
     $self->{pre_list} = [ [ $opt->{confirm} ] ];
@@ -678,9 +678,9 @@ sub fill_form {
                     $self->{plugin}->__clear_lines_to_end_of_screen();
                     $self->__reset_term();
                     splice @{$self->{list}}, 0, @{$self->{pre_list}};
-                    #if ( $self->{compat} || ! defined $self->{compat} && $ENV{READLINE_SIMPLE_COMPAT} ) {
-                        #return [ map { [ $_->[0], encode( 'console_in', $_->[1] ) ] } @{$self->{list}} ];
-                    #}
+                    if ( $self->{compat} || ! defined $self->{compat} && $ENV{READLINE_SIMPLE_COMPAT} ) {
+                        return [ map { [ $_->[0], encode( 'console_in', $_->[1] ) ] } @{$self->{list}} ];
+                    }
 
                     return $self->{list};
                 }
@@ -801,6 +801,68 @@ sub __unicode_trim {
 }
 
 
+# use utf8;
+# use open qw( :std :utf8 );
+
+# use Term::ReadLine::Simple;
+# use Term::ReadLine; # 1.14
+# use Devel::Peek;
+
+# my $default = 'ü';                    # "\x{fc}"
+# character read with readline: 'ä'     # "\x{e4}"
+
+
+#-----------------------------------------------------------
+
+# my $tr = Term::ReadLine->new( 'Perl' );
+# my $line = $tr->readline( ': ' );         # no $default
+
+###  Ã¤    "\303\244"\0
+
+#-----------------------------------------------------------
+
+# my $tr = Term::ReadLine->new( 'Perl' );
+# my $line = $tr->readline( ': ', $default );
+
+###  üÃ¤   "\303\274\303\203\302\244"\0 [UTF8 "\x{fc}\x{c3}\x{a4}"]
+
+#-----------------------------------------------------------
+
+# my $tr = Term::ReadLine->new( 'Perl', *STDIN, *STDOUT );
+# my $line = $tr->readline( ': ', $default );
+
+###  üä    "\303\274\303\244"\0 [UTF8 "\x{fc}\x{e4}"]
+
+#-----------------------------------------------------------
+
+# my $tr = Term::ReadLine->new( 'Gnu 1.26' );
+# my $line = $tr->readline( ': ', $default );
+
+###  Ã¼Ã¤  "\303\274\303\244"\0
+
+#-----------------------------------------------------------
+
+# my $tr = Term::ReadLine->new( 'Gnu 1.26', *STDIN, *STDOUT );
+# my $line = $tr->readline( ': ', $default );
+
+###  Ã¼Ã¤  "\303\274\303\244"\0
+
+#-----------------------------------------------------------
+
+#my $tr = Term::ReadLine::Simple->new();
+#$tr->config( { compat => 0 } );
+#my $line = $tr->readline( ': ', $default );
+
+###  üä   "\303\274\303\244"\0 [UTF8 "\x{fc}\x{e4}"]
+
+#-----------------------------------------------------------
+
+# my $tr = Term::ReadLine::Simple->new();
+# $tr->config( { compat => 1 } );
+# my $line = $tr->readline( ': ', $default );
+
+###  Ã¼Ã¤  "\303\274\303\244"\0
+
 
 1;
 
@@ -816,7 +878,7 @@ Term::ReadLine::Simple - Read lines from STDIN.
 
 =head1 VERSION
 
-Version 0.206
+Version 0.207
 
 =cut
 
@@ -896,7 +958,8 @@ The available options are: the options from C<readline> and C<fill_form> and
 compat
 
 If I<compat> is set to C<1>, the return value of C<readline> is not decoded else the return value of C<readline>
-is decoded.
+is decoded. With C<fill_form> the second elements (values) of the arrays are returned encoded if I<compat> is set to
+C<1>, else they are returned decoded.
 
 Setting the environment variable READLINE_SIMPLE_COMPAT to a true value has the same effect as setting I<compat> to C<1>
 unless I<compat> is defined. If I<compat> is defined, READLINE_SIMPLE_COMPAT has no meaning.

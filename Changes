@@ -1,6 +1,10 @@
 Revision history for Term::ReadLine::Simple
 
 
+0.207   2015-03-17
+        - option "compat" affects also "fill_form".
+        - Update documentation.
+
 0.206   2015-03-16
         - Modified test.
 
