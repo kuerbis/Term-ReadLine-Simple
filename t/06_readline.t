@@ -9,9 +9,9 @@ BEGIN {
     if ( $^O eq 'MSWin32' ) {
         plan skip_all => "MSWin32: Expect not available.";
     }
-    #if ( ! $ENV{TESTS_USING_EXPECT_OK} ) {
-    #    plan skip_all => "Environment variable 'TESTS_USING_EXPECT_OK' not enabled.";
-    #}
+    if ( ! $ENV{TESTS_USING_EXPECT_OK} ) {
+        plan skip_all => "Environment variable 'TESTS_USING_EXPECT_OK' not enabled.";
+    }
 }
 
 eval "use Expect";
@@ -54,14 +54,6 @@ for my $ref ( @$a_ref ) {
     my $ret = $exp->expect( 2, [ qr/<.*>/ ] );
     my $result = $exp->match();
     $result = '' if ! defined $result;
-
-
-    diag( "\n\nexpected: $expected" );
-    diag( "before: ", $exp->before(), "|" );
-    diag( "after: ", $exp->after(), ">" );
-    diag( "match_number: ", $exp->match_number() );
-    diag( "error: ", $exp->error(), "\n\n" );
-
 
     ok( $ret, 'matched something' );
     ok( $result eq $expected, "expected: '$expected', got: '$result'" );

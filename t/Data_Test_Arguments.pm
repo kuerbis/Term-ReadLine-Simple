@@ -21,14 +21,14 @@ sub valid_args {
             expected => "<default>",
             args => [ 'Prompt: ', { default => 'default', no_echo => 0 } ],
         },
-        #{
-        #    expected => "<DEFAULT>",
-        #    args => [ 'Prompt: ', { no_echo => 1, default => "DEFAULT" } ],
-        #},
-        #{
-        #    expected => "<123>",
-        #    args => [ "Prompt: ", { no_echo => 2, default => 123 } ],
-        #},
+        {
+            expected => "<DEFAULT>",
+            args => [ 'Prompt: ', { no_echo => 1, default => "DEFAULT" } ],
+        },
+        {
+            expected => "<123>",
+            args => [ "Prompt: ", { no_echo => 2, default => 123 } ],
+        },
     ];
 }
 
