@@ -28,7 +28,7 @@ my $a_ref = Data_Test_Readline::return_test_data();
 
 
 my $readline_pl = catfile $RealBin, 'readline.pl';
-my @parameters = ( $readline_pl, 0 );
+my @parameters = ( $readline_pl, 5 );
 
 my $exp;
 
@@ -42,7 +42,7 @@ eval {
 }
 or plan skip_all => $@;
 
-for my $ref ( $a_ref->[0] ) {
+for my $ref ( $a_ref->[5] ) {
     my $pressed_keys = $ref->{used_keys};
     my $expected     = $ref->{expected};
 

@@ -13,7 +13,7 @@ my $tiny = Term::ReadLine::Simple->new();
 
 my $a_ref = Data_Test_Readline::return_test_data();
 
-for my $ref ( @$a_ref ) {
+for my $ref ( $a_ref->[shift] ) {
     my $args  = $ref->{arguments};
 
     my $line = $tiny->readline( @$args );
