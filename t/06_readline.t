@@ -55,6 +55,14 @@ for my $ref ( @$a_ref ) {
     my $result = $exp->match();
     $result = '' if ! defined $result;
 
+
+    diag( "\n\nexpected: $expected" );
+    diag( "before: ", $exp->before(), "|" );
+    diag( "after: ", $exp->after(), ">" );
+    diag( "match_number: ", $exp->match_number() );
+    diag( "error: ", $exp->error(), "\n\n" );
+
+
     ok( $ret, 'matched something' );
     ok( $result eq $expected, "expected: '$expected', got: '$result'" );
 

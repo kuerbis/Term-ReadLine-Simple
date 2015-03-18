@@ -4,7 +4,7 @@ use warnings;
 use strict;
 use 5.008003;
 
-our $VERSION = '0.207_01';
+our $VERSION = '0.207_02';
 
 use Carp   qw( croak carp );
 use Encode qw( encode );
@@ -320,6 +320,7 @@ sub __print_readline {
     }
     if ( $opt->{no_echo} ) {
         if ( $opt->{no_echo} == 2 ) {
+            print $self->{sep};
             return;
         }
         print $self->{sep}, '*' x $print_str->length(), "\r";
@@ -848,11 +849,11 @@ sub __unicode_trim {
 
 #-----------------------------------------------------------
 
-#my $tr = Term::ReadLine::Simple->new();
-#$tr->config( { compat => 0 } );
-#my $line = $tr->readline( ': ', $default );
+# my $tr = Term::ReadLine::Simple->new();
+# $tr->config( { compat => 0 } );
+# my $line = $tr->readline( ': ', $default );
 
-###  üä   "\303\274\303\244"\0 [UTF8 "\x{fc}\x{e4}"]
+###  üä    "\303\274\303\244"\0 [UTF8 "\x{fc}\x{e4}"]
 
 #-----------------------------------------------------------
 
@@ -877,7 +878,7 @@ Term::ReadLine::Simple - Read lines from STDIN.
 
 =head1 VERSION
 
-Version 0.207_01
+Version 0.207_02
 
 =cut
 
