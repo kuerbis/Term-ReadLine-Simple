@@ -20,16 +20,13 @@ if ( $@ ) {
 }
 
 use lib $RealBin;
-use Data_Test_Readline;
+use Data_Test_Arguments;
+
+( my $nr = __FILE__ )=~ s/.+_valid_arguments_readline_(\d+)\.t\z/$1/;
 
 my $command = $^X;
-my $key = Data_Test_Readline::key_seq();
-my $a_ref = Data_Test_Readline::return_test_data();
-
-( my $nr = __FILE__ )=~ s/.*06_readline_(\d+)\.t\z/$1/;
-
-my $readline_pl = catfile $RealBin, 'readline.pl';
-my @parameters = ( $readline_pl, $nr );
+my $script = catfile $RealBin, 'readline_valid_args.pl';
+my @parameters  = ( $script, $nr );
 
 my $exp;
 eval {
@@ -42,21 +39,16 @@ eval {
 }
 or plan skip_all => $@;
 
-my $pressed_keys = $a_ref->[$nr]{used_keys};
-my $expected     = $a_ref->[$nr]{expected};
+my $a_ref = Data_Test_Arguments::valid_args();
+my $expected = $a_ref->[$nr]{expected};
 
-my @seq;
-for my $k ( @$pressed_keys ) {
-    push @seq, exists $key->{$k} ? $key->{$k} : $k;
-}
-
-$exp->send( @seq );
-
+$exp->send( "\n" );
 my $ret = $exp->expect( 2, [ qr/<.*>/ ] );
-my $result = $exp->match();
-$result = '' if ! defined $result;
 
 ok( $ret, 'matched something' );
+
+my $result = $exp->match();
+$result = '' if ! defined $result;
 ok( $result eq $expected, "expected: '$expected', got: '$result'" );
 
 
