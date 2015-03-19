@@ -1,6 +1,9 @@
 Revision history for Term::ReadLine::Simple
 
 
+0.208_03   2015-03-19
+        - Changed tests.
+
 0.208_02   2015-03-19
         - Changed tests.
 
