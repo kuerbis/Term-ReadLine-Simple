@@ -26,7 +26,7 @@ my $command = $^X;
 my $key = Data_Test_Readline::key_seq();
 my $a_ref = Data_Test_Readline::return_test_data();
 
-( my $nr = __FILE__ )=~ s/.*06_readline_(\d+)\.t\z/$1/;
+( my $nr = __FILE__ )=~ s/.+_readline_(\d+)\.t\z/$1/;
 
 my $readline_pl = catfile $RealBin, 'readline.pl';
 my @parameters = ( $readline_pl, $nr );
