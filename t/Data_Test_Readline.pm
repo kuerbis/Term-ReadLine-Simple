@@ -82,14 +82,14 @@ sub return_test_data {
              arguments => [ 'Prompt: ', { default => "many words " x 100, no_echo => 0 } ],
         },
         {
-            used_keys => [ "abcde ", "XY " x 10, ( 'LEFT' ) x 36, ( 'RIGHT' ) x 8, 'CONTROL_K', 'ENTER' ],
-            expected  => "<DEFAULT abcde XY>",
-            arguments => [ "Prompt: ", { default => "DEFAULT " } ],
-        },
-        {
             used_keys => [ "The black cat climbed the green tree", 'HOME', ( 'RIGHT' ) x 4, ( 'DELETE' ) x 6, 'END', ( 'LEFT' ) x 5, ( 'BSPACE' ) x 6, 'ENTER' ],
             expected  => "<The cat climbed the tree>",
             arguments => [ 'Prompt: ' ],
+        },
+        {#
+            used_keys => [ "abcde ", "XY " x 10, ( 'LEFT' ) x 36, ( 'RIGHT' ) x 8, 'CONTROL_K', 'ENTER' ],
+            expected  => "<DEFAULT abcde XY>",
+            arguments => [ "Prompt: ", { default => "DEFAULT " } ],
         },
         {
             used_keys => [ qw( HOME RIGHT RIGHT_O DELETE CONTROL_D END LEFT LEFT_O BSPACE CONTROL_H CONTROL_A DELETE CONTROL_E BSPACE _ABC ENTER ) ],
