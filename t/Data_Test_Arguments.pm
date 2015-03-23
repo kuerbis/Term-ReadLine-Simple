@@ -27,8 +27,11 @@ sub valid_args {
         },
         {
             expected => "<123>",
-            #args => [ "Prompt: ", { no_echo => 2, default => 123 } ],
             args => [ "Prompt: ", { no_echo => 2, default => '123' } ],
+        },
+        {
+            expected => "<123>",
+            args => [ "Prompt: ", { no_echo => 2, default => 123 } ],
         },
     ];
 }
@@ -36,10 +39,6 @@ sub valid_args {
 
 sub invalid_args {
     return [
-        #{
-        #    expected => "<>",
-        #    args => [],
-        #},
         {
             expected => "<readline: a reference is not a valid prompt.>",
             args => [ {} ],

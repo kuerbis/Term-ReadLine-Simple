@@ -9,9 +9,9 @@ BEGIN {
     if ( $^O eq 'MSWin32' ) {
         plan skip_all => "MSWin32: Expect not available.";
     }
-    #if ( ! $ENV{TESTS_USING_EXPECT_OK} ) {
-    #    plan skip_all => "Environment variable 'TESTS_USING_EXPECT_OK' not enabled.";
-    #}
+    if ( ! $ENV{TESTS_USING_EXPECT_OK} ) {
+        plan skip_all => "Environment variable 'TESTS_USING_EXPECT_OK' not enabled.";
+    }
 }
 
 eval "use Expect";
