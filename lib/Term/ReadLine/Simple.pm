@@ -4,7 +4,7 @@ use warnings;
 use strict;
 use 5.008003;
 
-our $VERSION = '0.209';
+our $VERSION = '0.300';
 
 use Carp   qw( croak carp );
 use Encode qw( encode );
@@ -66,6 +66,7 @@ sub __set_defaults {
     # mark_curr: false ok
     # auto_up  : false ok
     # back     : undef 0k
+    $self->{sep}     = ': ';
     $self->{back}    = ''   if ! defined $self->{back};
     $self->{confirm} = '<<' if ! defined $self->{confirm};
 }
@@ -128,9 +129,10 @@ sub config {
             reinit_encoding => '',
             default         => '',
             prompt          => '',
+            sep             => '',
             back            => '',
             confirm         => '',
-            auto_up         => '[ 0 1 ]',
+            auto_up         => '[ 0 1 2 ]',
             mark_curr       => '[ 0 1 ]'
         };
         $self->__validate_options( $opt, $valid );
@@ -164,12 +166,12 @@ sub readline {
     $self->__validate_options( $opt, $valid );
     $opt->{default} = $self->{default} if ! defined $opt->{default};
     $opt->{no_echo} = $self->{no_echo} if ! defined $opt->{no_echo};
-    $self->{sep} = '';
+    $opt->{sep} = '';
     $self->{list}[0] = [ $prompt, $self->{default} ];
     $self->{curr_row} = 0;
     $self->{length_key}[0]   = Unicode::GCString->new( $prompt )->columns;
     $self->{len_longest_key} = $self->{length_key}[0];
-    $self->{length_prompt}   = $self->{len_longest_key} + length $self->{sep};
+    $self->{length_prompt}   = $self->{len_longest_key} + length $opt->{sep};
     my $str = Unicode::GCString->new( $opt->{default} );
     my $pos = $str->length();
     local $| = 1;
@@ -320,13 +322,13 @@ sub __print_readline {
     }
     if ( $opt->{no_echo} ) {
         if ( $opt->{no_echo} == 2 ) {
-            print $self->{sep};
+            print $opt->{sep};
             return;
         }
-        print $self->{sep}, '*' x $print_str->length(), "\r";
+        print $opt->{sep}, '*' x $print_str->length(), "\r";
     }
     else {
-        print $self->{sep}, $print_str->as_string, "\r";
+        print $opt->{sep}, $print_str->as_string, "\r";
     }
     $self->{plugin}->__right( $self->{length_prompt} + $print_str->substr( 0, $print_pos )->columns );
 
@@ -399,7 +401,7 @@ sub __print_current_row {
 
 
 sub __print_row {
-    my ( $self, $idx ) = @_;
+    my ( $self, $opt, $idx ) = @_;
     if ( $idx < @{$self->{pre_list}} ) {
         return $self->{list}[$idx][0];
     }
@@ -408,15 +410,15 @@ sub __print_row {
         $val =~ s/\p{Space}/ /g;
         $val =~ s/\p{C}//g;
         return
-            $self->__padded_or_trimed_key( $idx ) . $self->{sep} .
+            $self->__padded_or_trimed_key( $idx ) . $opt->{sep} .
             $self->__unicode_trim( Unicode::GCString->new( $val ), $self->{avail_width_value} );
     }
 }
 
 
 sub __write_screen {
-    my ( $self ) = @_;
-    print join "\n", map { $self->__print_row( $_ ) } $self->{begin_row} .. $self->{end_row};
+    my ( $self, $opt ) = @_;
+    print join "\n", map { $self->__print_row( $opt, $_ ) } $self->{begin_row} .. $self->{end_row};
     if ( $self->{pages} > 1 ) {
         if ( $self->{avail_height} - ( $self->{end_row} + 1 - $self->{begin_row} ) ) {
             print "\n" x ( $self->{avail_height} - ( $self->{end_row} - $self->{begin_row} ) - 1 );
@@ -442,9 +444,10 @@ sub __write_first_screen {
     if ( $self->{len_longest_key} > $self->{avail_width} / 3 ) {
         $self->{len_longest_key} = int( $self->{avail_width} / 3 );
     }
-    $self->{length_prompt} = $self->{len_longest_key} + length $self->{sep};
+    my $len_separator = Unicode::GCString->new( $opt->{sep} )->columns;
+    $self->{length_prompt} = $self->{len_longest_key} + $len_separator;
     $self->{avail_width_value} = $self->{avail_width} - $self->{length_prompt};
-    $self->{curr_row} = $opt->{auto_up} ? $curr_row : @{$self->{pre_list}};
+    $self->{curr_row} = $opt->{auto_up} == 2 ? $curr_row : @{$self->{pre_list}};
     $self->{begin_row} = 0;
     $self->{end_row}  = ( $self->{avail_height} - 1 );
     if ( $self->{end_row} > $#{$self->{list}} ) {
@@ -453,7 +456,7 @@ sub __write_first_screen {
     if ( defined $opt->{main_prompt} ) {
         print $opt->{main_prompt}, "\n";
     }
-    $self->__write_screen();
+    $self->__write_screen( $opt );
 }
 
 
@@ -471,18 +474,19 @@ sub fill_form {
     $self->{list} = $list;
     my $valid = {
         prompt    => '',
+        sep       => '',
         back      => '',
         confirm   => '',
-        auto_up   => '[ 0 1 ]',
+        auto_up   => '[ 0 1 2 ]',
         mark_curr => '[ 0 1 ]'
     };
     $self->__validate_options( $opt, $valid );
     $opt->{prompt}  = $self->{prompt}  if ! defined $opt->{prompt};
+    $opt->{sep}     = $self->{sep}     if ! defined $opt->{sep};
     $opt->{back}    = $self->{back}    if ! defined $opt->{back};
     $opt->{confirm} = $self->{confirm} if ! defined $opt->{confirm};
     $opt->{auto_up} = $self->{auto_up} if ! defined $opt->{auto_up};
     $opt->{main_prompt} = $opt->{prompt};
-    $self->{sep} = ': ';
     $self->{pre_list} = [ [ $opt->{confirm} ] ];
     if ( length $opt->{back} ) {
         unshift @{$self->{pre_list}}, [ $opt->{back} ];
@@ -601,11 +605,11 @@ sub fill_form {
                 $self->{curr_row}--;
                 ( $str, $pos ) = $self->__gcstring_and_pos();
                 if ( $self->{curr_row} >= $self->{begin_row} ) {
-                    $self->__reset_previous_row( $self->{curr_row} + 1 );
+                    $self->__reset_previous_row( $opt, $self->{curr_row} + 1 );
                     $self->{plugin}->__up( 1 );
                 }
                 else {
-                    $self->__print_previous_page();
+                    $self->__print_previous_page( $opt );
                 }
             }
         }
@@ -617,12 +621,12 @@ sub fill_form {
                 $self->{curr_row}++;
                 ( $str, $pos ) = $self->__gcstring_and_pos();
                 if ( $self->{curr_row} <= $self->{end_row} ) {
-                    $self->__reset_previous_row( $self->{curr_row} - 1 );
+                    $self->__reset_previous_row( $opt, $self->{curr_row} - 1 );
                     $self->{plugin}->__down( 1 );
                 }
                 else {
                     $self->{plugin}->__up( $self->{end_row} - $self->{begin_row} );
-                    $self->__print_next_page();
+                    $self->__print_next_page( $opt );
                 }
             }
         }
@@ -632,7 +636,7 @@ sub fill_form {
                     $self->{beep} = 1;
                 }
                 else {
-                    $self->__reset_previous_row( $self->{curr_row} );
+                    $self->__reset_previous_row( $opt, $self->{curr_row} );
                     $self->{plugin}->__up( $self->{curr_row} );
                     $self->{curr_row} = 0;
                     ( $str, $pos ) = $self->__gcstring_and_pos();
@@ -642,7 +646,7 @@ sub fill_form {
                 $self->{plugin}->__up( $self->{curr_row} - $self->{begin_row} );
                 $self->{curr_row} = $self->{begin_row} - $self->{avail_height};
                 ( $str, $pos ) = $self->__gcstring_and_pos();
-                $self->__print_previous_page();
+                $self->__print_previous_page( $opt );
             }
         }
         elsif (  $key == VK_PAGE_DOWN || $key == CONTROL_F ) {
@@ -651,7 +655,7 @@ sub fill_form {
                     $self->{beep} = 1;
                 }
                 else {
-                    $self->__reset_previous_row( $self->{curr_row} );
+                    $self->__reset_previous_row( $opt, $self->{curr_row} );
                     $self->{plugin}->__down( $self->{end_row} - $self->{curr_row} );
                     $self->{curr_row} = $self->{end_row};
                     ( $str, $pos ) = $self->__gcstring_and_pos();
@@ -661,7 +665,7 @@ sub fill_form {
                 $self->{plugin}->__up( $self->{curr_row} - $self->{begin_row} );
                 $self->{curr_row} = $self->{end_row} + 1;
                 ( $str, $pos ) = $self->__gcstring_and_pos();
-                $self->__print_next_page();
+                $self->__print_next_page( $opt );
             }
         }
         else {
@@ -685,7 +689,7 @@ sub fill_form {
 
                     return $self->{list};
                 }
-                if ( $opt->{auto_up} ) {
+                if ( $opt->{auto_up} == 2 ) {
                     if ( $self->{curr_row} == 0 ) {
                         $self->{beep} = 1;
                     }
@@ -703,26 +707,29 @@ sub fill_form {
                     $self->{plugin}->__clear_lines_to_end_of_screen();
                     ( $str, $pos ) = $self->__write_first_screen( $opt, scalar @{$self->{pre_list}} );
                     ( $str, $pos ) = $self->__gcstring_and_pos();
-                    #$self->{enter_col} = $pos;
-                    #$self->{enter_row} = $self->{curr_row};
+                    $self->{enter_col} = $pos;
+                    $self->{enter_row} = $self->{curr_row};
                 }
                 else {
-                    #if ( defined $self->{enter_row} && $self->{enter_row} == $self->{curr_row}
-                    #  && defined $self->{enter_col} && $self->{enter_col} == $pos ) {
-                    #    $self->{beep} = 1;
-                    #    next;
-                    #}
-                    #delete $self->{enter_row};
-                    #delete $self->{enter_col};
+                    if ( $opt->{auto_up} == 1 ) {
+                        if (    defined $self->{enter_row} && $self->{enter_row} == $self->{curr_row}
+                             && defined $self->{enter_col} && $self->{enter_col} == $pos
+                        ) {
+                            $self->{beep} = 1;
+                            next;
+                        }
+                        delete $self->{enter_row};
+                        delete $self->{enter_col};
+                    }
                     $self->{curr_row}++;
                     ( $str, $pos ) = $self->__gcstring_and_pos();
                     if ( $self->{curr_row} <= $self->{end_row} ) {
-                        $self->__reset_previous_row( $self->{curr_row} - 1 );
+                        $self->__reset_previous_row( $opt, $self->{curr_row} - 1 );
                         $self->{plugin}->__down( 1 );
                     }
                     else {
                         $self->{plugin}->__up( $self->{end_row} - $self->{begin_row} );
-                        $self->__print_next_page();
+                        $self->__print_next_page( $opt );
                     }
                 }
             }
@@ -736,29 +743,29 @@ sub fill_form {
 
 
 sub __reset_previous_row {
-    my ( $self, $idx ) = @_;
+    my ( $self, $opt, $idx ) = @_;
     $self->{plugin}->__clear_line();
-    print $self->__print_row( $idx );
+    print $self->__print_row( $opt, $idx );
 }
 
 
 sub __print_next_page {
-    my ( $self ) = @_;
+    my ( $self, $opt ) = @_;
     $self->{begin_row} = $self->{end_row} + 1;
     $self->{end_row}   = $self->{end_row} + $self->{avail_height};
     $self->{end_row}   = $#{$self->{list}} if $self->{end_row} > $#{$self->{list}};
     $self->{plugin}->__clear_lines_to_end_of_screen();
-    $self->__write_screen();
+    $self->__write_screen( $opt );
 }
 
 
 sub __print_previous_page {
-    my ( $self ) = @_;
+    my ( $self, $opt ) = @_;
     $self->{end_row}   = $self->{begin_row} - 1;
     $self->{begin_row} = $self->{begin_row} - $self->{avail_height};
     $self->{begin_row} = 0 if $self->{begin_row} < 0;
     $self->{plugin}->__clear_lines_to_end_of_screen();
-    $self->__write_screen();
+    $self->__write_screen( $opt );
 }
 
 
@@ -878,7 +885,7 @@ Term::ReadLine::Simple - Read lines from STDIN.
 
 =head1 VERSION
 
-Version 0.209
+Version 0.300
 
 =cut
 
@@ -1038,13 +1045,24 @@ default: undefined
 
 =item
 
-auto_up
+sep
 
-With I<auto_up> set to C<0> C<ENTER> goes to the next line if the cursor is on a "readline". After calling C<fill_form>
-the cursor is located on the first "readline" menu entry.
+Separates the key (prompt) from the value (input) on the screen.
 
-Set to C<1> means C<ENTER> goes to the top menu entry if the cursor is on a "readline". After calling C<fill_form> the
-cursor is on the first menu entry.
+default: C<: >
+
+=item
+
+auto_up BACKWARD INCOMPATIBLE CHANGES
+
+With I<auto_up> set to C<0> or $<1> pressing C<ENTER> moves the cursor to the next line if the cursor is on a
+"readline". If the last "readline" row is reached, the cursor jumps to the first "readline" row if C<ENTER> was pressed.
+If after an C<ENTER> the cursor has jumped to the first "readline" row and I<auto_up> is set to C<1> C<ENTER> doesn't
+move the cursor to the next row until the cursor is moved with another key. If I<auto_up> is set to C<0> or C<1> the
+initially cursor position is on the first "readline" menu entry.
+
+With I<auto_up> set to C<2> C<ENTER> goes to the top menu entry if the cursor is on a "readline". The initially
+cursor position is on the first "readline" menu entry.
 
 default: C<0>
 
