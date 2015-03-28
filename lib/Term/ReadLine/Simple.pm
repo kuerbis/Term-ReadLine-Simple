@@ -60,15 +60,15 @@ sub __set_defaults {
     # compat         : undef ok
     # reinit_encoding: undef ok
     # no_echo        : false ok
-    $self->{default} = '' if ! defined $self->{default};
+    $self->{default} = '' if ! defined $self->{default}; ##
 
     # prompt   : undef ok
     # mark_curr: false ok
     # auto_up  : false ok
     # back     : undef 0k
-    $self->{sep}     = ': ';
-    $self->{back}    = ''   if ! defined $self->{back};
-    $self->{confirm} = '<<' if ! defined $self->{confirm};
+    $self->{sep}     = ': ' if ! defined $self->{sep}; ##
+    $self->{back}    = ''   if ! defined $self->{back}; ##
+    $self->{confirm} = '<<' if ! defined $self->{confirm}; ##
 }
 
 
