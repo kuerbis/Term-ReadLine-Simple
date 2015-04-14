@@ -4,7 +4,7 @@ use warnings;
 use strict;
 use 5.008003;
 
-our $VERSION = '0.300';
+our $VERSION = '0.301';
 
 use Carp   qw( croak carp );
 use Encode qw( encode );
@@ -60,15 +60,15 @@ sub __set_defaults {
     # compat         : undef ok
     # reinit_encoding: undef ok
     # no_echo        : false ok
-    $self->{default} = '' if ! defined $self->{default}; ##
+    $self->{default} = '';
 
     # prompt   : undef ok
     # mark_curr: false ok
     # auto_up  : false ok
     # back     : undef 0k
-    $self->{sep}     = ': ' if ! defined $self->{sep}; ##
-    $self->{back}    = ''   if ! defined $self->{back}; ##
-    $self->{confirm} = '<<' if ! defined $self->{confirm}; ##
+    $self->{sep}     = ': ';
+    $self->{back}    = '';
+    $self->{confirm} = '<<';
 }
 
 
@@ -819,10 +819,15 @@ sub __unicode_trim {
 # my $default = 'ü';                    # "\x{fc}"
 # character read with readline: 'ä'     # "\x{e4}"
 
+
+#-----------------------------------------------------------
+
+# my $tr = Term::ReadLine->new( 'Stub' );   # default not supported
+
 #-----------------------------------------------------------
 
 # my $tr = Term::ReadLine->new( 'Perl' );
-# my $line = $tr->readline( ': ' );         # no $default
+# my $line = $tr->readline( ': ' );
 
 ###  Ã¤    "\303\244"\0
 
@@ -885,7 +890,7 @@ Term::ReadLine::Simple - Read lines from STDIN.
 
 =head1 VERSION
 
-Version 0.300
+Version 0.301
 
 =cut
 

@@ -11,14 +11,6 @@ t/00-load.t
 t/01-can.t
 t/02-methods.t
 t/03_arguments_config.t
-t/04_valid_arguments_readline.t
-t/05_invalid_arguments_readline.t
-t/06_readline.t
-t/Data_Test_Arguments.pm
-t/Data_Test_Readline.pm
-t/readline.pl
-t/readline_invalid_args.pl
-t/readline_valid_args.pl
 xt/04_valid_arguments_readline.t
 xt/05_invalid_arguments_readline.t
 xt/06_readline.t
