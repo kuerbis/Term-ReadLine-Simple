@@ -4,7 +4,7 @@ use warnings;
 use strict;
 use 5.008003;
 
-our $VERSION = '0.301';
+our $VERSION = '0.302';
 
 use Carp   qw( croak carp );
 use Encode qw( encode );
@@ -266,6 +266,9 @@ sub readline {
             else {
                 $self->{beep} = 1;
             }
+        }
+        elsif ( $key == VK_UP || $key == VK_DOWN ) {
+            $self->{beep} = 1;
         }
         else {
             $key = chr $key;
@@ -890,7 +893,7 @@ Term::ReadLine::Simple - Read lines from STDIN.
 
 =head1 VERSION
 
-Version 0.301
+Version 0.302
 
 =cut
 

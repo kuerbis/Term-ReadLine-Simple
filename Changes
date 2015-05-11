@@ -1,6 +1,9 @@
 Revision history for Term::ReadLine::Simple
 
 
+0.302   2015-05-11
+        - "readline": catch "key-up" and "key-down".
+
 0.301   2015-04-14
         - Expect tests only in xt.
         - Code refactoring.
