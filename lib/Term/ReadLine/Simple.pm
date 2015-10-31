@@ -4,7 +4,7 @@ use warnings;
 use strict;
 use 5.008003;
 
-our $VERSION = '0.302';
+our $VERSION = '0.303';
 
 use Carp   qw( croak carp );
 use Encode qw( encode );
@@ -64,8 +64,8 @@ sub __set_defaults {
 
     # prompt   : undef ok
     # mark_curr: false ok
-    # auto_up  : false ok
     # back     : undef 0k
+    $self->{auto_up} = 0; # ###
     $self->{sep}     = ': ';
     $self->{back}    = '';
     $self->{confirm} = '<<';
@@ -893,7 +893,7 @@ Term::ReadLine::Simple - Read lines from STDIN.
 
 =head1 VERSION
 
-Version 0.302
+Version 0.303
 
 =cut
 
@@ -1061,11 +1061,11 @@ default: C<: >
 
 =item
 
-auto_up BACKWARD INCOMPATIBLE CHANGES
+auto_up
 
-With I<auto_up> set to C<0> or $<1> pressing C<ENTER> moves the cursor to the next line if the cursor is on a
+With I<auto_up> set to C<0> or C<1> pressing C<ENTER> moves the cursor to the next line if the cursor is on a
 "readline". If the last "readline" row is reached, the cursor jumps to the first "readline" row if C<ENTER> was pressed.
-If after an C<ENTER> the cursor has jumped to the first "readline" row and I<auto_up> is set to C<1> C<ENTER> doesn't
+If after an C<ENTER> the cursor has jumped to the first "readline" row and I<auto_up> is set to C<1>, C<ENTER> doesn't
 move the cursor to the next row until the cursor is moved with another key. If I<auto_up> is set to C<0> or C<1> the
 initially cursor position is on the first "readline" menu entry.
 
