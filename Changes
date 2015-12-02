@@ -2,7 +2,7 @@ Revision history for Term::ReadLine::Simple
 
 
 0.305   2015-12-02
-        - Bugfix fill_form: don't alter the passed AoA - make a copy instead.
+        - Bugfix in "fill_form": don't alter the passed AoA - make a copy instead.
         - Removed option "sep".
         - New option "ro" - readonly.
         - Update documentation.

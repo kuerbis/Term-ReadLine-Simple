@@ -313,7 +313,7 @@ sub readline {
 
 
 sub __print_readline {
-    my ( $self, $opt, $list, $str, $pos, $locked ) = @_;
+    my ( $self, $opt, $list, $str, $pos ) = @_;
     my $print_str = $str->copy;
     my $print_pos = $pos;
     my $n = 1;
@@ -414,7 +414,7 @@ sub __gcstring_and_pos {
 
 
 sub __print_current_row {
-    my ( $self, $opt, $list, $str, $pos, $locked ) = @_;
+    my ( $self, $opt, $list, $str, $pos ) = @_;
     $self->{plugin}->__clear_line();
     if ( $self->{curr_row} < @{$self->{pre_list}} ) {
         $self->{plugin}->__reverse();
@@ -422,7 +422,7 @@ sub __print_current_row {
         $self->{plugin}->__reset();
     }
     else {
-        $self->__print_readline( $opt, $list, $str, $pos, $locked );
+        $self->__print_readline( $opt, $list, $str, $pos );
         $list->[$self->{curr_row}][1] = $str->as_string;
     }
 }
@@ -551,7 +551,7 @@ sub fill_form {
             $self->{beep} = 0;
         }
         else {
-            $self->__print_current_row( $opt, $list, $str, $pos, $locked );
+            $self->__print_current_row( $opt, $list, $str, $pos );
         }
         my $key = $self->{plugin}->__get_key();
         if ( ! defined $key ) {
