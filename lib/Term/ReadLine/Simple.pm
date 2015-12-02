@@ -4,10 +4,11 @@ use warnings;
 use strict;
 use 5.008003;
 
-our $VERSION = '0.304';
+our $VERSION = '0.305';
 
-use Carp   qw( croak carp );
-use Encode qw( encode );
+use Carp       qw( croak carp );
+use Encode     qw( encode );
+use List::Util qw( any );
 
 use Encode::Locale    qw();
 use Unicode::GCString qw();
@@ -64,11 +65,11 @@ sub __set_defaults {
 
     # prompt   : undef ok
     # mark_curr: false ok
-    # back     : undef 0k
+    # back     : undef ok
     $self->{auto_up} = 0;
-    $self->{sep}     = ': ';
     $self->{back}    = '';
     $self->{confirm} = '<<';
+    $self->{ro}      = [];
 }
 
 
@@ -80,6 +81,19 @@ sub __validate_options {
     }
     my $sub =  ( caller( 1 ) )[3];
     $sub =~ s/^.+::([^:]+)\z/$1/;
+
+####
+    if ( exists $opt->{sep} && ! $self->{called_sep_message} && $sub ne 'readline' ) {      # remove
+        print "  '$sub' called with the option 'sep'.\n";
+        print "  The option 'sep' has been removed.\n";
+        print "  Write an email to cuer2s\x{0040}gmail.com with the subject\n";
+        print "  'keep opt sep' if you want back the option 'sep'.\n";
+        print "  Press ENTER to continue: ";
+        <STDIN>;
+        $self->{called_sep_message} = 1;
+    }
+####
+
     for my $key ( keys %$opt ) {
         if ( ! exists $valid->{$key} ) {
             croak $sub . ": '$key' is not a valid option name";
@@ -88,6 +102,9 @@ sub __validate_options {
             next;
         }
         if ( ref $opt->{$key} ) {
+            if ( $valid->{$key} eq 'ARRAY' ) {
+                next;
+            }
             croak $sub . ": option '$key' : a reference is not a valid value.";
         }
         if (  $valid->{$key} eq '' ) {
@@ -111,6 +128,8 @@ sub __init_term {
 
 sub __reset_term {
     my ( $self ) = @_;
+    delete $self->{enter_row} if exists $self->{enter_row};
+    delete $self->{enter_col} if exists $self->{enter_col};
     if ( defined $self->{plugin} ) {
         $self->{plugin}->__reset_mode();
     }
@@ -129,11 +148,14 @@ sub config {
             reinit_encoding => '',
             default         => '',
             prompt          => '',
-            sep             => '',
             back            => '',
             confirm         => '',
             auto_up         => '[ 0 1 2 ]',
-            mark_curr       => '[ 0 1 ]'
+            mark_curr       => '[ 0 1 ]',
+            ro              => 'ARRAY',
+####
+            sep             => '', # remove
+####
         };
         $self->__validate_options( $opt, $valid );
         for my $option ( keys %$opt ) {
@@ -166,12 +188,12 @@ sub readline {
     $self->__validate_options( $opt, $valid );
     $opt->{default} = $self->{default} if ! defined $opt->{default};
     $opt->{no_echo} = $self->{no_echo} if ! defined $opt->{no_echo};
-    $opt->{sep} = '';
+    $self->{sep} = '';
     my $list = [ [ $prompt, $self->{default} ] ];
     $self->{curr_row} = 0;
     $self->{length_key}[0]   = Unicode::GCString->new( $prompt )->columns;
     $self->{len_longest_key} = $self->{length_key}[0];
-    $self->{length_prompt}   = $self->{len_longest_key} + length $opt->{sep};
+    $self->{length_prompt}   = $self->{len_longest_key} + length $self->{sep};
     my $str = Unicode::GCString->new( $opt->{default} );
     my $pos = $str->length();
     local $| = 1;
@@ -291,7 +313,7 @@ sub readline {
 
 
 sub __print_readline {
-    my ( $self, $opt, $list, $str, $pos ) = @_;
+    my ( $self, $opt, $list, $str, $pos, $locked ) = @_;
     my $print_str = $str->copy;
     my $print_pos = $pos;
     my $n = 1;
@@ -323,15 +345,19 @@ sub __print_readline {
     else {
         print "\r", $key;
     }
+    my $sep = $self->{sep};
+    if ( any { $_ == $self->{curr_row} - @{$self->{pre_list}} } @{$opt->{ro}} ) {
+        $sep = $self->{sep_ro};
+    }
     if ( $opt->{no_echo} ) {
         if ( $opt->{no_echo} == 2 ) {
-            print $opt->{sep};
+            print $sep;
             return;
         }
-        print $opt->{sep}, '*' x $print_str->length(), "\r";
+        print $sep, '*' x $print_str->length(), "\r";
     }
     else {
-        print $opt->{sep}, $print_str->as_string, "\r";
+        print $sep, $print_str->as_string, "\r";
     }
     $self->{plugin}->__right( $self->{length_prompt} + $print_str->substr( 0, $print_pos )->columns );
 
@@ -388,7 +414,7 @@ sub __gcstring_and_pos {
 
 
 sub __print_current_row {
-    my ( $self, $opt, $list, $str, $pos ) = @_;
+    my ( $self, $opt, $list, $str, $pos, $locked ) = @_;
     $self->{plugin}->__clear_line();
     if ( $self->{curr_row} < @{$self->{pre_list}} ) {
         $self->{plugin}->__reverse();
@@ -396,7 +422,7 @@ sub __print_current_row {
         $self->{plugin}->__reset();
     }
     else {
-        $self->__print_readline( $opt, $list, $str, $pos );
+        $self->__print_readline( $opt, $list, $str, $pos, $locked );
         $list->[$self->{curr_row}][1] = $str->as_string;
     }
 }
@@ -411,8 +437,12 @@ sub __print_row {
         my $val = defined $list->[$idx][1] ? $list->[$idx][1] : '';
         $val =~ s/\p{Space}/ /g;
         $val =~ s/\p{C}//g;
+        my $sep = $self->{sep};
+        if ( any { $_ == $idx - @{$self->{pre_list}} } @{$opt->{ro}} ) {
+            $sep = $self->{sep_ro};
+        }
         return
-            $self->__padded_or_trimed_key( $list, $idx ) . $opt->{sep} .
+            $self->__padded_or_trimed_key( $list, $idx ) . $sep .
             $self->__unicode_trim( Unicode::GCString->new( $val ), $self->{avail_width_value} );
     }
 }
@@ -446,7 +476,11 @@ sub __write_first_screen {
     if ( $self->{len_longest_key} > $self->{avail_width} / 3 ) {
         $self->{len_longest_key} = int( $self->{avail_width} / 3 );
     }
-    my $len_separator = Unicode::GCString->new( $opt->{sep} )->columns;
+    my $len_separator = Unicode::GCString->new( $self->{sep} )->columns;
+    if ( @{$opt->{ro}} ) {
+        my $tmp = Unicode::GCString->new( $self->{sep_ro} )->columns;
+        $len_separator = $tmp if $tmp > $len_separator;
+    }
     $self->{length_prompt} = $self->{len_longest_key} + $len_separator;
     $self->{avail_width_value} = $self->{avail_width} - $self->{length_prompt};
     $self->{curr_row} = $opt->{auto_up} == 2 ? $curr_row : @{$self->{pre_list}};
@@ -463,11 +497,11 @@ sub __write_first_screen {
 
 
 sub fill_form {
-    my ( $self, $list, $opt ) = @_;
-    if ( ! defined $list ) {
+    my ( $self, $orig_list, $opt ) = @_;
+    if ( ! defined $orig_list ) {
         croak "'fill_form' called with no argument.";
     }
-    elsif ( ref $list ne 'ARRAY' ) {
+    elsif ( ref $orig_list ne 'ARRAY' ) {
         croak "'fill_form' requires an ARRAY reference as its argument.";
     }
     if ( defined $opt && ref $opt ne 'HASH' ) {
@@ -475,19 +509,25 @@ sub fill_form {
     }
     my $valid = {
         prompt    => '',
-        sep       => '',
         back      => '',
         confirm   => '',
         auto_up   => '[ 0 1 2 ]',
-        mark_curr => '[ 0 1 ]'
+        mark_curr => '[ 0 1 ]',
+        ro        => 'ARRAY',
+####
+        sep             => '', # remove
+####
     };
+    my $list = [ map { [ $_->[0], $_->[1] ] } @$orig_list ];
     $self->__validate_options( $opt, $valid );
     $opt->{prompt}  = $self->{prompt}  if ! defined $opt->{prompt};
-    $opt->{sep}     = $self->{sep}     if ! defined $opt->{sep};
     $opt->{back}    = $self->{back}    if ! defined $opt->{back};
     $opt->{confirm} = $self->{confirm} if ! defined $opt->{confirm};
     $opt->{auto_up} = $self->{auto_up} if ! defined $opt->{auto_up};
+    $opt->{ro}      = $self->{ro}      if ! defined $opt->{ro};
     $opt->{main_prompt} = $opt->{prompt};
+    $self->{sep}    = ': ';
+    $self->{sep_ro} = '| ';
     $self->{pre_list} = [ [ $opt->{confirm} ] ];
     if ( length $opt->{back} ) {
         unshift @{$self->{pre_list}}, [ $opt->{back} ];
@@ -502,12 +542,16 @@ sub fill_form {
     my ( $str, $pos ) = $self->__gcstring_and_pos( $list );
 
     LINE: while ( 1 ) {
+        my $locked = 0;
+        if ( any { $_ == $self->{curr_row} - @{$self->{pre_list}} } @{$opt->{ro}} ) {
+            $locked = 1;
+        }
         if ( $self->{beep} ) {
             $self->{plugin}->__beep();
             $self->{beep} = 0;
         }
         else {
-            $self->__print_current_row( $opt, $list, $str, $pos );
+            $self->__print_current_row( $opt, $list, $str, $pos, $locked );
         }
         my $key = $self->{plugin}->__get_key();
         if ( ! defined $key ) {
@@ -526,7 +570,10 @@ sub fill_form {
             ( $str, $pos ) = $self->__gcstring_and_pos( $list );
         }
         if ( $key == KEY_BSPACE || $key == CONTROL_H ) {
-            if ( $pos ) {
+            if ( $locked ) {
+                $self->{beep} = 1;
+            }
+            elsif ( $pos ) {
                 $pos--;
                 $str->substr( $pos, 1, '' );
             }
@@ -535,7 +582,10 @@ sub fill_form {
             }
         }
         elsif ( $key == CONTROL_U ) {
-            if ( $pos ) {
+            if ( $locked ) {
+                $self->{beep} = 1;
+            }
+            elsif ( $pos ) {
                 $str->substr( 0, $pos, '' );
                 $pos = 0;
             }
@@ -544,7 +594,10 @@ sub fill_form {
             }
         }
         elsif ( $key == CONTROL_K ) {
-            if ( $pos < $str->length() ) {
+            if ( $locked ) {
+                $self->{beep} = 1;
+            }
+            elsif ( $pos < $str->length() ) {
                 $str->substr( $pos, $str->length() - $pos, '' );
             }
             else {
@@ -553,7 +606,10 @@ sub fill_form {
         }
         elsif ( $key == VK_DELETE || $key == CONTROL_D ) {
             if ( $str->length() ) {
-                if ( $pos < $str->length() ) {
+                if ( $locked ) {
+                    $self->{beep} = 1;
+                }
+                elsif ( $pos < $str->length() ) {
                     $str->substr( $pos, 1, '' );
                 }
                 else {
@@ -673,21 +729,22 @@ sub fill_form {
             $key = chr $key;
             utf8::upgrade $key;
             if ( $key eq "\n" || $key eq "\r" ) { #
+                my $up = $self->{curr_row} - $self->{begin_row};
+                $up += 1 if $opt->{main_prompt};
                 if ( $list->[$self->{curr_row}][0] eq $opt->{back} ) {
-                    $self->{plugin}->__up( 1 );
+                    $self->{plugin}->__up( $up );
                     $self->{plugin}->__clear_lines_to_end_of_screen();
                     $self->__reset_term();
                     return;
                 }
                 elsif ( $list->[$self->{curr_row}][0] eq $opt->{confirm} ) {
-                    $self->{plugin}->__up( scalar @{$self->{pre_list}} );
+                    $self->{plugin}->__up( $up );
                     $self->{plugin}->__clear_lines_to_end_of_screen();
                     $self->__reset_term();
                     splice @$list, 0, @{$self->{pre_list}};
                     if ( $self->{compat} || ! defined $self->{compat} && $ENV{READLINE_SIMPLE_COMPAT} ) {
                         return [ map { [ $_->[0], encode( 'console_in', $_->[1] ) ] } @$list ];
                     }
-
                     return $list;
                 }
                 if ( $opt->{auto_up} == 2 ) {
@@ -695,16 +752,14 @@ sub fill_form {
                         $self->{beep} = 1;
                     }
                     else {
-                        $self->{plugin}->__up( $self->{curr_row} - $self->{begin_row} );
-                        $self->{plugin}->__up( 1 ) if $opt->{main_prompt};
+                        $self->{plugin}->__up( $up );
                         $self->{plugin}->__clear_lines_to_end_of_screen();
                         ( $str, $pos ) = $self->__write_first_screen( $opt, $list, 0 );
                         ( $str, $pos ) = $self->__gcstring_and_pos( $list );
                     }
                 }
                 elsif ( $self->{curr_row} == $#$list ) {
-                    $self->{plugin}->__up( $self->{end_row} - $self->{begin_row} );
-                    $self->{plugin}->__up( 1 ) if $opt->{main_prompt};
+                    $self->{plugin}->__up( $up );
                     $self->{plugin}->__clear_lines_to_end_of_screen();
                     ( $str, $pos ) = $self->__write_first_screen( $opt, $list, scalar @{$self->{pre_list}} );
                     ( $str, $pos ) = $self->__gcstring_and_pos( $list );
@@ -719,8 +774,10 @@ sub fill_form {
                             $self->{beep} = 1;
                             next;
                         }
-                        delete $self->{enter_row};
-                        delete $self->{enter_col};
+                        else {
+                            delete $self->{enter_row};
+                            delete $self->{enter_col};
+                        }
                     }
                     $self->{curr_row}++;
                     ( $str, $pos ) = $self->__gcstring_and_pos( $list );
@@ -729,14 +786,19 @@ sub fill_form {
                         $self->{plugin}->__down( 1 );
                     }
                     else {
-                        $self->{plugin}->__up( $self->{end_row} - $self->{begin_row} );
+                        $self->{plugin}->__up( $up );
                         $self->__print_next_page( $opt, $list );
                     }
                 }
             }
             else {
-                $str->substr( $pos, 0, $key );
-                $pos++;
+                if ( $locked ) {
+                    $self->{beep} = 1;
+                }
+                else {
+                    $str->substr( $pos, 0, $key );
+                    $pos++;
+                }
             }
         }
     }
@@ -891,7 +953,7 @@ Term::ReadLine::Simple - Read lines from STDIN.
 
 =head1 VERSION
 
-Version 0.304
+Version 0.305
 
 =cut
 
@@ -903,13 +965,13 @@ Version 0.304
     my $line = $new->readline( 'Prompt: ', { default => 'abc' } );
 
 
-    my $list = [
+    my $aoa = [
         [ 'name'           ],
         [ 'year'           ],
         [ 'color', 'green' ],
         [ 'city'           ]
     ];
-    my $modified_list = $new->fill_form( $list );
+    my $modified_list = $new->fill_form( $aoa );
 
 =head1 DESCRIPTION
 
@@ -1031,7 +1093,7 @@ default: C<0>
 
 C<fill_form> reads a list of lines from STDIN.
 
-    $new_list = $new->fill_form( $list, { prompt => 'Required:' } );
+    $new_list = $new->fill_form( $aoa, { prompt => 'Required:' } );
 
 The first argument is a reference to an array of arrays. The arrays have 1 or 2 elements: the first element is the key
 and the optional second element is the value. The key is used as the prompt string for the "readline", the value is used
@@ -1051,14 +1113,6 @@ default: undefined
 
 =item
 
-sep
-
-Separates the key (prompt) from the value (input) on the screen.
-
-default: C<: >
-
-=item
-
 auto_up
 
 With I<auto_up> set to C<0> or C<1> pressing C<ENTER> moves the cursor to the next line if the cursor is on a
@@ -1068,9 +1122,19 @@ move the cursor to the next row until the cursor is moved with another key. If I
 initially cursor position is on the first "readline" menu entry.
 
 With I<auto_up> set to C<2> C<ENTER> goes to the top menu entry if the cursor is on a "readline". The initially
-cursor position is on the first "readline" menu entry.
+cursor position is on the first menu entry.
 
 default: C<0>
+
+=item
+
+ro
+
+Set a form-row to readonly.
+
+Expected value: a reference to an array with the indexes of the rows which should be readonly.
+
+default: empty array
 
 =item
 
