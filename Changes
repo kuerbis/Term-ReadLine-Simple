@@ -1,6 +1,9 @@
 Revision history for Term::ReadLine::Simple
 
 
+0.306   2015-12-03
+        - List::Util: 'any()'not available before version "1.33".
+
 0.305   2015-12-02
         - Bugfix in "fill_form": don't alter the passed AoA - make a copy instead.
         - Removed option "sep".

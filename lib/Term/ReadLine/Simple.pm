@@ -4,7 +4,7 @@ use warnings;
 use strict;
 use 5.008003;
 
-our $VERSION = '0.305';
+our $VERSION = '0.306';
 
 use Carp       qw( croak carp );
 use Encode     qw( encode );
@@ -518,7 +518,7 @@ sub fill_form {
         sep             => '', # remove
 ####
     };
-    my $list = [ map { [ $_->[0], $_->[1] ] } @$orig_list ];
+    my $list = [ map { [ @$_ ] } @$orig_list ];
     $self->__validate_options( $opt, $valid );
     $opt->{prompt}  = $self->{prompt}  if ! defined $opt->{prompt};
     $opt->{back}    = $self->{back}    if ! defined $opt->{back};
@@ -953,7 +953,7 @@ Term::ReadLine::Simple - Read lines from STDIN.
 
 =head1 VERSION
 
-Version 0.305
+Version 0.306
 
 =cut
 
