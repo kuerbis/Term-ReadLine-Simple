@@ -27,8 +27,8 @@ WriteMakefile(
         resources   => {
             repository => {
               type => 'git',
-              web  => 'https://github.com/kuerbis/Term-ReadLine::Simple',
-              url  => 'https://github.com/kuerbis/Term-ReadLine::Simple.git',
+              web  => 'https://github.com/kuerbis/Term-ReadLine-Simple',
+              url  => 'https://github.com/kuerbis/Term-ReadLine-Simple.git',
             },
         },
     },
