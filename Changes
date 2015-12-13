@@ -1,6 +1,9 @@
 Revision history for Term::ReadLine::Simple
 
 
+0.308   2015-12-13
+        - Handle multi-line prompt.
+
 0.307   2015-12-04
         - Makefile.PL: fixed url to github repository  [github #1 - Mohammad S Anwar (Manwar)].
 

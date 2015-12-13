@@ -4,13 +4,14 @@ use warnings;
 use strict;
 use 5.008003;
 
-our $VERSION = '0.307';
+our $VERSION = '0.308';
 
 use Carp       qw( croak carp );
 use Encode     qw( encode );
 use List::Util qw( any );
 
 use Encode::Locale    qw();
+use Text::LineFold    qw();
 use Unicode::GCString qw();
 
 use Term::ReadLine::Simple::Constants qw( :rl );
@@ -386,7 +387,18 @@ sub __prepare_size {
     $self->{avail_width} = $maxcols - 1;
     $self->{avail_height} = $maxrows;
     if ( defined $opt->{main_prompt} ) {
-        $self->{avail_height}--;
+        $self->__nr_prompt_lines( $opt );
+        my $backup_height = $self->{avail_height};
+        $self->{avail_height} -= $self->{nr_prompt_lines};
+        my $min_avail_height = 5;
+        if ( $self->{avail_height} < $min_avail_height ) {
+            if ( $backup_height > $min_avail_height ) {
+                $self->{avail_height} = $min_avail_height;
+            }
+            else {
+                $self->{avail_height} = $backup_height;
+            }
+        }
     }
     if ( @$list > $self->{avail_height} ) {
         $self->{pages} = int @$list / ( $self->{avail_height} - 1 );
@@ -399,6 +411,38 @@ sub __prepare_size {
         $self->{pages} = 1;
     }
     return;
+}
+
+
+sub __nr_prompt_lines {
+    my ( $self, $opt ) = @_;
+    my $prompt = $opt->{main_prompt};
+    if ( $prompt eq '' ) {
+        $self->{nr_prompt_lines} = 0;
+        return;
+    }
+    #$self->{main_prompt} =~ s/[^\n\P{Space}]/ /g;
+    #$self->{main_prompt} =~ s/[^\n\P{C}]//g;
+    if ( $prompt !~ /\n/ &&  Unicode::GCString->new( $prompt )->columns <= $self->{avail_width} ) {
+        $self->{nr_prompt_lines} = 1;
+    }
+    else {
+        my $line_fold = Text::LineFold->new(
+            Charset=> 'utf-8',
+            ColMax => $self->{avail_width},
+            OutputCharset => '_UNICODE_',
+            Urgent => 'FORCE'
+        );
+        #if ( defined $self->{lf} ) {
+        #    $self->{prompt_copy} = $line_fold->fold( ' ' x $self->{lf}[0], ' ' x $self->{lf}[1], $self->{main_prompt} );
+        #}
+        #else {
+            $opt->{main_prompt} = $line_fold->fold( $prompt, 'PLAIN' );
+        #}
+        $opt->{main_prompt} =~ s/\n\z//;
+        $self->{nr_prompt_lines} = $opt->{main_prompt} =~ s/\n/\n\r/g; # #
+        $self->{nr_prompt_lines} += 1;
+    }
 }
 
 
@@ -730,7 +774,7 @@ sub fill_form {
             utf8::upgrade $key;
             if ( $key eq "\n" || $key eq "\r" ) { #
                 my $up = $self->{curr_row} - $self->{begin_row};
-                $up += 1 if $opt->{main_prompt};
+                $up += $self->{nr_prompt_lines} if $self->{nr_prompt_lines};
                 if ( $list->[$self->{curr_row}][0] eq $opt->{back} ) {
                     $self->{plugin}->__up( $up );
                     $self->{plugin}->__clear_lines_to_end_of_screen();
@@ -953,7 +997,7 @@ Term::ReadLine::Simple - Read lines from STDIN.
 
 =head1 VERSION
 
-Version 0.307
+Version 0.308
 
 =cut
 

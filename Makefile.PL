@@ -51,6 +51,7 @@ WriteMakefile(
         'Encode::Locale'    => 0,
         'Exporter'          => 0,
         'List::Util'        => '1.33',
+        'Text::LineFold'    => 0,
         'Unicode::GCString' => 0,
         %prereqs_os_specific,
     },
