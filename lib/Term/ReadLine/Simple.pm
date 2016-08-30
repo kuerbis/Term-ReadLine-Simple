@@ -4,7 +4,7 @@ use warnings;
 use strict;
 use 5.008003;
 
-our $VERSION = '0.308';
+our $VERSION = '0.309';
 
 use Carp       qw( croak carp );
 use Encode     qw( encode );
@@ -82,19 +82,6 @@ sub __validate_options {
     }
     my $sub =  ( caller( 1 ) )[3];
     $sub =~ s/^.+::([^:]+)\z/$1/;
-
-####
-    if ( exists $opt->{sep} && ! $self->{called_sep_message} && $sub ne 'readline' ) {      # remove
-        print "  '$sub' called with the option 'sep'.\n";
-        print "  The option 'sep' has been removed.\n";
-        print "  Write an email to cuer2s\x{0040}gmail.com with the subject\n";
-        print "  'keep opt sep' if you want back the option 'sep'.\n";
-        print "  Press ENTER to continue: ";
-        <STDIN>;
-        $self->{called_sep_message} = 1;
-    }
-####
-
     for my $key ( keys %$opt ) {
         if ( ! exists $valid->{$key} ) {
             croak $sub . ": '$key' is not a valid option name";
@@ -154,9 +141,6 @@ sub config {
             auto_up         => '[ 0 1 2 ]',
             mark_curr       => '[ 0 1 ]',
             ro              => 'ARRAY',
-####
-            sep             => '', # remove
-####
         };
         $self->__validate_options( $opt, $valid );
         for my $option ( keys %$opt ) {
@@ -997,7 +981,7 @@ Term::ReadLine::Simple - Read lines from STDIN.
 
 =head1 VERSION
 
-Version 0.308
+Version 0.309
 
 =cut
 
@@ -1017,7 +1001,17 @@ Version 0.308
     ];
     my $modified_list = $new->fill_form( $aoa );
 
+=head1 DEPRECATED
+
+This module is now called L<Term::Form>.
+
+L<Term::ReadLine::Simple> will be removed.
+
 =head1 DESCRIPTION
+
+This module is now called L<Term::Form>.
+
+L<Term::ReadLine::Simple> will be removed.
 
 C<readline> reads a line from STDIN. As soon as C<Return> is pressed C<readline> returns the read string without the
 newline character - so no C<chomp> is required.
@@ -1237,7 +1231,7 @@ L<stackoverflow|http://stackoverflow.com> for the help.
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2014-2015 Matthäus Kiem.
+Copyright 2014-2016 Matthäus Kiem.
 
 This library is free software; you can redistribute it and/or modify it under the same terms as Perl 5.10.0. For
 details, see the full text of the licenses in the file LICENSE.

@@ -1,6 +1,9 @@
 Revision history for Term::ReadLine::Simple
 
 
+0.309   2016-08-30
+        - Renamed "Term::ReadLine::Simple" to "Term::Form".
+
 0.308   2015-12-13
         - Handle multi-line prompt.
 
